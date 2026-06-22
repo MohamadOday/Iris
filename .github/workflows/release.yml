@@ -60,13 +60,19 @@ jobs:
             ./gradlew assembleRelease
           fi
 
+      # Extract app version from build.gradle
+      - name: Extract Version Name
+        run: |
+          VERSION_NAME=$(grep -oP 'versionName\s+"\K[^"]+' app/build.gradle)
+          echo "APP_VERSION=$VERSION_NAME" >> $GITHUB_ENV
+
       # Rename release APK for cleaner release assets
       - name: Rename APK
         run: |
           if [ -f "app/build/outputs/apk/release/app-release.apk" ]; then
-            mv app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/iris-keyboard-${{ github.ref_name }}.apk
+            mv app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/iris-keyboard-v${{ env.APP_VERSION }}.apk
           elif [ -f "app/build/outputs/apk/release/app-release-unsigned.apk" ]; then
-            mv app/build/outputs/apk/release/app-release-unsigned.apk app/build/outputs/apk/release/iris-keyboard-${{ github.ref_name }}-unsigned.apk
+            mv app/build/outputs/apk/release/app-release-unsigned.apk app/build/outputs/apk/release/iris-keyboard-v${{ env.APP_VERSION }}-unsigned.apk
           fi
 
       # Create a new GitHub Release and upload the built APK
@@ -74,7 +80,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: app/build/outputs/apk/release/iris-keyboard-*.apk
-          name: Iris Keyboard ${{ github.ref_name }}
+          name: Iris Keyboard v${{ env.APP_VERSION }}
           draft: false
           prerelease: false
         env:

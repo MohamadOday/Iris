@@ -64,7 +64,11 @@ public final class SettingsFragment extends InputMethodSettingsFragment {
         findPreference("privacy_policy").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
             @Override
             public boolean onPreferenceClick(Preference preference) {
-                openUrl(res.getString(R.string.privacy_policy_url));
+                new android.app.AlertDialog.Builder(getActivity())
+                        .setTitle(R.string.privacy_policy)
+                        .setMessage("We do not store your data.")
+                        .setPositiveButton(android.R.string.ok, null)
+                        .show();
                 return true;
             }
         });
@@ -72,6 +76,13 @@ public final class SettingsFragment extends InputMethodSettingsFragment {
             @Override
             public boolean onPreferenceClick(Preference preference) {
                 openUrl(res.getString(R.string.license_url));
+                return true;
+            }
+        });
+        findPreference("about").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+            @Override
+            public boolean onPreferenceClick(Preference preference) {
+                showAboutDialog();
                 return true;
             }
         });
@@ -217,5 +228,82 @@ public final class SettingsFragment extends InputMethodSettingsFragment {
             Log.e(TAG, "Import failed", e);
             Toast.makeText(getActivity(), "Import failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
+    }
+
+    private void showAboutDialog() {
+        if (getActivity() == null) return;
+        
+        android.view.LayoutInflater inflater = getActivity().getLayoutInflater();
+        android.view.View dialogView = inflater.inflate(R.layout.about_dialog, null);
+        
+        android.widget.TextView versionText = dialogView.findViewById(R.id.about_version_text);
+        android.widget.TextView githubBtn = dialogView.findViewById(R.id.about_github_btn);
+        android.widget.TextView telegramBtn = dialogView.findViewById(R.id.about_telegram_btn);
+        android.widget.TextView websiteBtn = dialogView.findViewById(R.id.about_website_btn);
+        android.view.View homelandRow = dialogView.findViewById(R.id.about_homeland_row);
+        final android.view.View easterEggCard = dialogView.findViewById(R.id.about_easter_egg_card);
+        final android.widget.TextView hintText = dialogView.findViewById(R.id.about_easter_egg_hint);
+        
+        String verName = nabu.iris.keyboard.latin.utils.ApplicationUtils.getVersionName(getActivity());
+        versionText.setText("Version " + verName);
+        
+        githubBtn.setOnClickListener(new android.view.View.OnClickListener() {
+            @Override
+            public void onClick(android.view.View v) {
+                openUrl("https://github.com/MohamadOday");
+            }
+        });
+        
+        telegramBtn.setOnClickListener(new android.view.View.OnClickListener() {
+            @Override
+            public void onClick(android.view.View v) {
+                openUrl("https://t.me/bn3di");
+            }
+        });
+        
+        websiteBtn.setOnClickListener(new android.view.View.OnClickListener() {
+            @Override
+            public void onClick(android.view.View v) {
+                openUrl("https://bn3di.is-a.dev");
+            }
+        });
+        
+        final int[] tapCount = {0};
+        android.view.View.OnClickListener easterEggTrigger = new android.view.View.OnClickListener() {
+            @Override
+            public void onClick(android.view.View v) {
+                if (easterEggCard.getVisibility() == android.view.View.VISIBLE) {
+                    return;
+                }
+                tapCount[0]++;
+                int remaining = 5 - tapCount[0];
+                if (remaining > 0) {
+                    android.widget.Toast.makeText(getActivity(), 
+                            "Tap " + remaining + " more times for a secret...", 
+                            android.widget.Toast.LENGTH_SHORT).show();
+                } else {
+                    hintText.setText("You unlocked the Cradle of Civilization! 🇮🇶");
+                    easterEggCard.setVisibility(android.view.View.VISIBLE);
+                    easterEggCard.setAlpha(0f);
+                    easterEggCard.setScaleX(0.8f);
+                    easterEggCard.setScaleY(0.8f);
+                    easterEggCard.animate()
+                            .alpha(1f)
+                            .scaleX(1.0f)
+                            .scaleY(1.0f)
+                            .setDuration(500)
+                            .setInterpolator(new android.view.animation.OvershootInterpolator())
+                            .start();
+                }
+            }
+        };
+        
+        homelandRow.setOnClickListener(easterEggTrigger);
+        versionText.setOnClickListener(easterEggTrigger);
+        
+        new android.app.AlertDialog.Builder(getActivity())
+                .setView(dialogView)
+                .setPositiveButton(android.R.string.ok, null)
+                .show();
     }
 }

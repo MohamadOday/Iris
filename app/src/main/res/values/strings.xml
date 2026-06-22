@@ -142,5 +142,21 @@
     <string name="export_settings_summary">Save your settings to a local JSON file</string>
     <string name="import_settings_title">Import Settings</string>
     <string name="import_settings_summary">Restore settings from a saved JSON file</string>
+
+    <!-- About Section -->
+    <string name="about_title">About</string>
+    <string name="about_dialog_title">About Iris Keyboard</string>
+    <string name="about_developer">Developer</string>
+    <string name="about_developer_name">Mohamad Oday</string>
+    <string name="about_homeland">Homeland</string>
+    <string name="about_homeland_value">Iraq 🇮🇶</string>
+    <string name="about_version">Version</string>
+    <string name="about_github">GitHub</string>
+    <string name="about_telegram">Telegram</string>
+    <string name="about_website">Website</string>
+    <string name="about_connect_title">Connect</string>
+    <string name="about_easter_egg_hint">Tap Homeland or Version for a secret!</string>
+    <string name="about_easter_egg_title">Mesopotamia: Cradle of Civilization 🌟</string>
+    <string name="about_easter_egg_message">Iraq is home to the ancient civilizations of Sumer, Akkad, Babylon, and Assyria, where history, writing, the wheel, and the code of laws were born! 📜🏛️\n\nThank you for exploring Iris Keyboard! 🌌✨</string>
 </resources>
 
