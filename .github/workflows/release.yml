@@ -27,6 +27,12 @@ jobs:
       - name: Grant Execute Permission to Gradlew
         run: chmod +x gradlew
 
+      - name: Remove Termux AAPT2 override for GitHub Actions
+        run: |
+          if [ -f gradle.properties ]; then
+            sed -i '/android.aapt2FromMavenOverride/d' gradle.properties
+          fi
+
       # Decrypt the keystore file from Base64 secret
       - name: Decode Keystore File
         if: env.KEYSTORE_BASE64 != null
