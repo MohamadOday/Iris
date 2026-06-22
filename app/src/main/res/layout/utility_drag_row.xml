@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="100dp"
+    android:layout_height="100dp"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="8dp"
+    android:layout_margin="6dp"
+    android:background="@drawable/drag_card_background"
+    android:foreground="?android:attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true">
+
+    <!-- Grab Handle at the top -->
+    <ImageView
+        android:id="@+id/drag_handle"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:src="@drawable/ic_drag_handle"
+        android:contentDescription="Drag Handle"
+        android:layout_marginBottom="8dp"
+        android:clickable="true"
+        android:focusable="true" />
+
+    <!-- Label in the middle -->
+    <TextView
+        android:id="@+id/row_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="13sp"
+        android:gravity="center"
+        android:textColor="?android:attr/textColorPrimary" />
+</LinearLayout>

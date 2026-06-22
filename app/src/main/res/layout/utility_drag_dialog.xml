@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <Switch
+            android:id="@+id/switch_keys"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:text="Keyboard Keys"
+            android:textSize="16sp" />
+
+        <Switch
+            android:id="@+id/switch_clipboard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:text="Clipboard"
+            android:textSize="16sp" />
+
+        <Switch
+            android:id="@+id/switch_ai"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:text="AI Copilot"
+            android:textSize="16sp" />
+
+        <Switch
+            android:id="@+id/switch_emoji"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:text="Emoji Panel"
+            android:textSize="16sp" />
+
+        <Switch
+            android:id="@+id/switch_settings"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:text="Settings"
+            android:textSize="16sp" />
+    </LinearLayout>
+</ScrollView>

@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="soundpack_names">
+        <item>iOS (Apple Inc. - Sampled)</item>
+        <item>iOS Deep (Apple Inc. - Sampled)</item>
+        <item>Cherry MX Blue (Mechanical)</item>
+        <item>Retro Typewriter</item>
+        <item>Bubble Wrap Pop</item>
+        <item>Sci-Fi Synth Beeps</item>
+    </string-array>
+    <string-array name="soundpack_values">
+        <item>default</item>
+        <item>default_deep</item>
+        <item>Cherry_MX_Blue</item>
+        <item>Retro_Typewriter</item>
+        <item>Bubble_Wrap</item>
+        <item>Sci-Fi_Synth</item>
+    </string-array>
+
+    <string-array name="ai_provider_names">
+        <item>Ollama (Local)</item>
+        <item>Gemini (Google Cloud)</item>
+        <item>Custom API (OpenAI / DeepSeek / OpenRouter)</item>
+    </string-array>
+    <string-array name="ai_provider_values">
+        <item>ollama</item>
+        <item>gemini</item>
+        <item>custom</item>
+    </string-array>
+
+    <string-array name="ai_temperature_names">
+        <item>Precise (0.0)</item>
+        <item>Focused (0.3)</item>
+        <item>Balanced (0.7)</item>
+        <item>Creative (1.0)</item>
+        <item>Wild (1.5)</item>
+    </string-array>
+    <string-array name="ai_temperature_values">
+        <item>0.0</item>
+        <item>0.3</item>
+        <item>0.7</item>
+        <item>1.0</item>
+        <item>1.5</item>
+    </string-array>
+
+    <string-array name="ai_max_tokens_names">
+        <item>Short (256 tokens)</item>
+        <item>Medium (512 tokens)</item>
+        <item>Standard (1024 tokens)</item>
+        <item>Long (2048 tokens)</item>
+        <item>Extended (4096 tokens)</item>
+    </string-array>
+    <string-array name="ai_max_tokens_values">
+        <item>256</item>
+        <item>512</item>
+        <item>1024</item>
+        <item>2048</item>
+        <item>4096</item>
+    </string-array>
+    <string-array name="utility_button_names">
+        <item>Keyboard Keys</item>
+        <item>Clipboard</item>
+        <item>AI Copilot</item>
+        <item>GIF Search</item>
+        <item>Emoji Panel</item>
+        <item>Settings</item>
+        <item>None (Hide)</item>
+    </string-array>
+    <string-array name="utility_button_values">
+        <item>keys</item>
+        <item>clipboard</item>
+        <item>ai</item>
+        <item>gif</item>
+        <item>emoji</item>
+        <item>settings</item>
+        <item>none</item>
+    </string-array>
+
+    <string-array name="gif_provider_names">
+        <item>Tenor</item>
+        <item>Klipy</item>
+        <item>GIPHY</item>
+    </string-array>
+    <string-array name="gif_provider_values">
+        <item>tenor</item>
+        <item>klipy</item>
+        <item>giphy</item>
+    </string-array>
+
+    <string-array name="translate_mode_names">
+        <item>(Google Translate)</item>
+        <item>Offline (ML Kit)</item>
+        <item>AI Copilot</item>
+    </string-array>
+    <string-array name="translate_mode_values">
+        <item>scraping</item>
+        <item>mlkit</item>
+        <item>ai</item>
+    </string-array>
+
+    <string-array name="translate_ai_provider_names">
+        <item>Active AI Copilot configuration</item>
+        <item>Gemini (Google Cloud)</item>
+        <item>Ollama (Local)</item>
+        <item>Custom API (OpenAI / DeepSeek)</item>
+    </string-array>
+    <string-array name="translate_ai_provider_values">
+        <item>active</item>
+        <item>gemini</item>
+        <item>ollama</item>
+        <item>custom</item>
+    </string-array>
+</resources>

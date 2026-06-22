@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2014 The Android Open Source Project
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+          http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    android:title="@string/settings_screen_preferences">
+    <SwitchPreference
+        android:key="auto_cap"
+        android:title="@string/auto_cap"
+        android:summary="@string/auto_cap_summary"
+        android:defaultValue="true"
+        android:persistent="true" />
+    <SwitchPreference
+        android:key="pref_show_number_row"
+        android:title="@string/show_number_row"
+        android:defaultValue="false" />
+    <SwitchPreference
+        android:key="pref_show_special_chars"
+        android:title="@string/show_special_chars"
+        android:defaultValue="true" />
+    <SwitchPreference
+        android:key="pref_show_language_switch_key"
+        android:title="@string/show_language_switch_key"
+        android:defaultValue="true" />
+    <SwitchPreference
+        android:key="pref_use_on_screen"
+        android:title="@string/pref_use_on_screen"
+        android:summary="@string/pref_use_on_screen_summary"
+        android:defaultValue="false" />
+    <SwitchPreference
+        android:key="pref_enable_ime_switch"
+        android:title="@string/pref_enable_ime_switch"
+        android:dependency="pref_show_language_switch_key"
+        android:defaultValue="false" />
+    <SwitchPreference
+        android:key="pref_space_swipe"
+        android:title="@string/space_swipe"
+        android:defaultValue="false" />
+    <SwitchPreference
+        android:key="pref_delete_swipe"
+        android:title="@string/delete_swipe"
+        android:defaultValue="false" />
+    <PreferenceCategory
+        android:title="@string/utility_toolbar_category">
+        <nabu.iris.keyboard.latin.settings.DragReorderDialogPreference
+            android:key="pref_utility_button_order"
+            android:title="@string/pref_utility_button_order_title"
+            android:defaultValue="keys,clipboard,ai,emoji,settings" />
+        <EditTextPreference
+            android:key="pref_emoji_list"
+            android:title="@string/emoji_list"
+            android:summary="@string/emoji_list_summary"
+            android:defaultValue="😀,😁,😂,🤣,😃,😄,😅,😆,😉,😊,😋,😎,😍,😘,🥰,😗,😙,😚" />
+        <nabu.iris.keyboard.latin.settings.ColorDialogPreference
+            android:key="pref_utility_background_color"
+            android:title="@string/pref_utility_background_color_title" />
+        <EditTextPreference
+            android:key="pref_clip_suggestion_timeout"
+            android:title="@string/pref_clip_suggestion_timeout_title"
+            android:summary="@string/pref_clip_suggestion_timeout_summary"
+            android:defaultValue="60"
+            android:inputType="number" />
+        <SwitchPreference
+            android:key="pref_utility_show_gif"
+            android:title="Show GIF Search button"
+            android:defaultValue="true" />
+        <ListPreference
+            android:key="pref_gif_provider"
+            android:title="GIF Search Provider"
+            android:entries="@array/gif_provider_names"
+            android:entryValues="@array/gif_provider_values"
+            android:defaultValue="tenor" />
+        <EditTextPreference
+            android:key="pref_giphy_api_key"
+            android:title="GIPHY API Key (BYOK)"
+            android:summary="Enter your custom GIPHY API key"
+            android:defaultValue="" />
+        <EditTextPreference
+            android:key="pref_klipy_api_key"
+            android:title="Klipy API Key (BYOK)"
+            android:summary="Enter your custom Klipy API key"
+            android:defaultValue="" />
+        <SwitchPreference
+            android:key="pref_gif_high_quality"
+            android:title="High Quality GIF Previews"
+            android:summary="Display medium-high resolution previews in the GIF grid (uses more memory/data)"
+            android:defaultValue="false" />
+    </PreferenceCategory>
+</PreferenceScreen>
+

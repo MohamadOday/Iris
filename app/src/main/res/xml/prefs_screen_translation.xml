@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2026 Latin IME Customizer -->
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:key="screen_translation"
+    android:title="Translation Settings">
+
+    <!-- Toolbar Shortcut -->
+    <SwitchPreference
+        android:key="pref_utility_show_translate"
+        android:title="Shortcut on Toolbar"
+        android:summary="Show the translation panel button in the keyboard toolbar"
+        android:defaultValue="true" />
+
+    <!-- Mode Selector -->
+    <ListPreference
+        android:key="pref_translate_mode"
+        android:title="Translation Mode"
+        android:summary="Choose default translation backend"
+        android:entries="@array/translate_mode_names"
+        android:entryValues="@array/translate_mode_values"
+        android:defaultValue="scraping" />
+
+    <!-- AI Settings Category -->
+    <PreferenceCategory
+        android:key="cat_translate_ai"
+        android:title="AI TRANSLATION SETTINGS">
+        
+        <ListPreference
+            android:key="pref_translate_ai_provider"
+            android:title="Translation AI Provider"
+            android:summary="Choose which AI configuration to query for translations"
+            android:entries="@array/translate_ai_provider_names"
+            android:entryValues="@array/translate_ai_provider_values"
+            android:defaultValue="active" />
+
+        <EditTextPreference
+            android:key="pref_translate_custom_prompt"
+            android:title="AI Custom Prompt"
+            android:summary="Custom instruction used when translating text via AI. Supports [Language] and [Text]."
+            android:defaultValue="Translate the following text to [Language]. Output ONLY the translated text. Do not include any explanations, warnings, headers, greetings, markdown blocks, or surrounding quotes:\n\n[Text]" />
+    </PreferenceCategory>
+
+    <!-- ML Kit Storage Category -->
+    <PreferenceCategory
+        android:key="cat_translate_mlkit"
+        android:title="OFFLINE ML KIT MODEL STORAGE">
+        
+        <Preference
+            android:key="pref_translate_clear_models"
+            android:title="Free Offline Translation RAM/Storage"
+            android:summary="Deletes all downloaded local ML Kit translation models to reclaim space and RAM (~30MB+ per model)." />
+    </PreferenceCategory>
+
+</PreferenceScreen>

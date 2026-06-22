@@ -1,0 +1,27 @@
+This keyboard is created for those who only need a keyboard and nothing more.
+
+To enable the keyboard:
+
+* Open "Iris" from your launcher
+* Enable Iris (default system warning about tracking will be shown)
+* Switch to Iris from current Input Method (differs between keyboards, usually long-press space)
+* To edit Iris settings long-press "," or open system Settings, Languages &amp; Input, Iris.
+* You can enable/disable all the input methods in Settings, Languages &amp; Input, Manage Keyboards (differs between phones)
+
+<b>Features:</b>
+
+* Small size (&lt;1MB)
+* Adjustable keyboard height for more screen space
+* Number row
+* Swipe space to move pointer
+* Delete swipe
+* Custom theme colors
+* Minimal permissions (only Vibrate)
+* Ads-free
+
+<b>Features it doesn’t have and probably will never have:</b>
+
+* Emojis
+* GIFs
+* Spell checker
+* Swipe typing

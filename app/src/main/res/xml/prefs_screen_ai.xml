@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2026 Latin IME Customizer -->
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:key="screen_ai"
+    android:title="AI Copilot Studio">
+
+    <!-- Master Toggle -->
+    <SwitchPreference
+        android:key="pref_ai_enabled"
+        android:title="Enable AI Copilot"
+        android:summary="Show the AI Copilot panel in the keyboard toolbar"
+        android:defaultValue="true" />
+
+    <!-- Provider Selector -->
+    <ListPreference
+        android:key="pref_ai_provider"
+        android:title="AI Provider"
+        android:summary="Choose your AI backend"
+        android:entries="@array/ai_provider_names"
+        android:entryValues="@array/ai_provider_values"
+        android:defaultValue="ollama"
+        android:dependency="pref_ai_enabled" />
+
+    <!-- System Prompt -->
+    <EditTextPreference
+        android:key="pref_ai_system_prompt"
+        android:title="System Prompt"
+        android:summary="Custom system instruction prepended to every AI request"
+        android:defaultValue="You are a helpful assistant integrated into a mobile keyboard. Be concise and direct."
+        android:dependency="pref_ai_enabled" />
+
+    <!-- Gemini Cloud Settings -->
+    <PreferenceCategory
+        android:key="cat_gemini"
+        android:title="GEMINI CLOUD"
+        android:dependency="pref_ai_enabled">
+        <EditTextPreference
+            android:key="pref_gemini_key"
+            android:title="API Key"
+            android:summary="Your Google Gemini API key"
+            android:defaultValue="" />
+        <EditTextPreference
+            android:key="pref_gemini_model"
+            android:title="Model"
+            android:summary="Gemini model to use (e.g. gemini-2.5-flash)"
+            android:defaultValue="gemini-2.5-flash" />
+    </PreferenceCategory>
+
+    <!-- Local Ollama Settings -->
+    <PreferenceCategory
+        android:key="cat_ollama"
+        android:title="LOCAL OLLAMA"
+        android:dependency="pref_ai_enabled">
+        <EditTextPreference
+            android:key="pref_ollama_url"
+            android:title="Host URL"
+            android:summary="Ollama API endpoint (e.g. http://localhost:11434)"
+            android:defaultValue="http://localhost:11434" />
+        <EditTextPreference
+            android:key="pref_ollama_model"
+            android:title="Model"
+            android:summary="Model name (e.g. qwen2.5-coder, llama3.1)"
+            android:defaultValue="qwen2.5-coder" />
+    </PreferenceCategory>
+
+    <!-- Custom OpenAI-Compatible API Settings -->
+    <PreferenceCategory
+        android:key="cat_custom"
+        android:title="CUSTOM API (OPENAI-COMPATIBLE)"
+        android:dependency="pref_ai_enabled">
+        <EditTextPreference
+            android:key="pref_custom_url"
+            android:title="Base URL"
+            android:summary="API endpoint (e.g. https://api.openai.com/v1)"
+            android:defaultValue="https://api.openai.com/v1" />
+        <EditTextPreference
+            android:key="pref_custom_model"
+            android:title="Model"
+            android:summary="Model name (e.g. gpt-4o-mini, deepseek-chat)"
+            android:defaultValue="gpt-4o-mini" />
+        <EditTextPreference
+            android:key="pref_custom_headers"
+            android:title="HTTP Headers (JSON)"
+            android:summary="Custom headers for authentication and routing"
+            android:defaultValue="{&quot;Authorization&quot;:&quot;Bearer YOUR_KEY&quot;}" />
+    </PreferenceCategory>
+
+    <!-- Advanced -->
+    <PreferenceCategory
+        android:key="cat_advanced"
+        android:title="ADVANCED"
+        android:dependency="pref_ai_enabled">
+        <ListPreference
+            android:key="pref_ai_temperature"
+            android:title="Temperature"
+            android:summary="Controls response creativity (lower = focused, higher = creative)"
+            android:entries="@array/ai_temperature_names"
+            android:entryValues="@array/ai_temperature_values"
+            android:defaultValue="0.7" />
+        <ListPreference
+            android:key="pref_ai_max_tokens"
+            android:title="Max Response Length"
+            android:summary="Maximum tokens in AI responses"
+            android:entries="@array/ai_max_tokens_names"
+            android:entryValues="@array/ai_max_tokens_values"
+            android:defaultValue="1024" />
+        <SwitchPreference
+            android:key="pref_ai_skip_params"
+            android:title="Skip Advanced Parameters"
+            android:summary="Do not send temperature and max response length (useful for older or custom local endpoints)"
+            android:defaultValue="false" />
+        <Preference
+            android:key="pref_ai_test_connection"
+            android:title="Test Connection"
+            android:summary="Send a test prompt to verify your API setup" />
+    </PreferenceCategory>
+
+</PreferenceScreen>
