@@ -118,13 +118,8 @@ public final class AudioAndHapticFeedbackManager {
             }
 
             // Create default soundpacks
-            String[] packs = {"Cherry_MX_Blue", "Retro_Typewriter", "Bubble_Wrap", "Sci-Fi_Synth"};
-            int[] packIds = {
-                KeySoundSynthesizer.SOUNDPACK_CHERRY,
-                KeySoundSynthesizer.SOUNDPACK_TYPEWRITER,
-                KeySoundSynthesizer.SOUNDPACK_BUBBLE,
-                KeySoundSynthesizer.SOUNDPACK_SCIFI
-            };
+            String[] packs = {};
+            int[] packIds = {};
 
             for (int p = 0; p < packs.length; p++) {
                 File packDir = new File(soundpacksDir, packs[p]);

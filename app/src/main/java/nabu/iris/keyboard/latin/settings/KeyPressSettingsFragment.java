@@ -179,18 +179,6 @@ public final class KeyPressSettingsFragment extends SubScreenFragment {
         names.add("iOS Deep (Apple Inc. - Sampled)");
         values.add("default_deep");
         
-        names.add("Cherry MX Blue (Mechanical)");
-        values.add("Cherry_MX_Blue");
-
-        names.add("Retro Typewriter");
-        values.add("Retro_Typewriter");
-
-        names.add("Bubble Wrap Pop");
-        values.add("Bubble_Wrap");
-
-        names.add("Sci-Fi Synth Beeps");
-        values.add("Sci-Fi_Synth");
-
         // Scan for user custom folders
         if (soundpacksDir != null && soundpacksDir.exists()) {
             java.io.File[] dirs = soundpacksDir.listFiles(java.io.File::isDirectory);
@@ -198,10 +186,8 @@ public final class KeyPressSettingsFragment extends SubScreenFragment {
                 for (java.io.File dir : dirs) {
                     String folderName = dir.getName();
                     // Avoid duplicating builtin defaults
-                    if (!folderName.equals("Cherry_MX_Blue") &&
-                        !folderName.equals("Retro_Typewriter") &&
-                        !folderName.equals("Bubble_Wrap") &&
-                        !folderName.equals("Sci-Fi_Synth")) {
+                    if (!folderName.equals("default") &&
+                        !folderName.equals("default_deep")) {
                         
                         String displayName = null;
                         java.io.File configFile = new java.io.File(dir, "config.json");

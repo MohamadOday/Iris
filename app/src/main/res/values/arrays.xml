@@ -3,18 +3,10 @@
     <string-array name="soundpack_names">
         <item>iOS (Apple Inc. - Sampled)</item>
         <item>iOS Deep (Apple Inc. - Sampled)</item>
-        <item>Cherry MX Blue (Mechanical)</item>
-        <item>Retro Typewriter</item>
-        <item>Bubble Wrap Pop</item>
-        <item>Sci-Fi Synth Beeps</item>
     </string-array>
     <string-array name="soundpack_values">
         <item>default</item>
         <item>default_deep</item>
-        <item>Cherry_MX_Blue</item>
-        <item>Retro_Typewriter</item>
-        <item>Bubble_Wrap</item>
-        <item>Sci-Fi_Synth</item>
     </string-array>
 
     <string-array name="ai_provider_names">
