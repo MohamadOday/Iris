@@ -16,6 +16,7 @@ Feel free to connect or send feedback via Telegram: [@bn3di](https://t.me/bn3di)
 
 ## 📖 Table of Contents
 
+- [📦 Release Variants (Build Flavors)](#-release-variants-build-flavors)
 - [🤖 Core Features](#-core-features)
   - [AI Copilot Studio](#1-ai-copilot-studio)
   - [Translation Suite](#2-translation-suite)
@@ -27,6 +28,19 @@ Feel free to connect or send feedback via Telegram: [@bn3di](https://t.me/bn3di)
 - [🔒 Privacy & Enterprise Deployment](#-privacy--enterprise-deployment)
 - [⚙️ Building and Development](#%EF%B8%8F-building-and-development)
 - [⚖️ Attribution & Licensing](#%EF%B8%8F-attribution--licensing)
+
+---
+
+## 📦 Release Variants (Build Flavors)
+
+To support different user preferences, system configurations, and maintain a fully free-and-open-source (FOSS) version, Iris is distributed in two distinct release variants:
+
+* **Iris-MlKit (Recommended for Offline Translation):**
+  * **What it is:** Includes the **Google ML Kit Offline Translation** engine, which allows you to download offline language translation packs (~30MB+ per language) directly inside the keyboard settings.
+  * ⚠️ **Important:** To download and run the offline translation models, **Google Play Services** must be installed and active on your phone.
+* **Iris-NoMlKit (Fully FOSS):**
+  * **What it is:** A fully free-and-open-source version that completely strips out the Google ML Kit library dependencies and proprietary SDK binaries, making it fully compatible with FOSS stores like F-Droid or IzzyOnDroid.
+  * **Offline Translation Support:** Offline translation is not supported in this version. When selected, it displays a *"Offline translation not supported"* error. Note that all other translation modes (online Web Scraping translation and AI-powered translation) still function perfectly!
 
 ---
 
@@ -103,15 +117,19 @@ Iris is built using modern Android build tooling. It is written in Java and uses
 * Android SDK Platform 36
 
 ### Build Commands
-To compile a debug APK on your machine or Termux environment:
+To compile the APKs on your machine or Termux environment:
 ```bash
 # Clean project
 ./gradlew clean
 
-# Build debug APK
-./gradlew assembleDebug
+# Build a specific variant (Debug)
+./gradlew assembleMlkitDebug    # ML Kit version
+./gradlew assembleNomlkitDebug  # FOSS version
+
+# Build all release APKs (Unsigned/Signed)
+./gradlew assembleRelease
 ```
-The output APK will be generated at `app/build/outputs/apk/debug/app-debug.apk`.
+The compiled output APKs will be generated under the `app/build/outputs/apk/mlkit/` and `app/build/outputs/apk/nomlkit/` directories.
 
 ---
 
