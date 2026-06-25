@@ -6,6 +6,12 @@
 
 **Iris** is a state-of-the-art, privacy-centric, and feature-rich keyboard for Android. Forked from the minimal AOSP-based *Simple Keyboard*, Iris transforms typing into an advanced workspace by embedding locally run AI models, real-time translation pipelines, a mechanical sound synthesizer, and dynamic clipboard features—all while keeping your privacy completely intact.
 
+## 👋 Author's Note & Community
+
+This keyboard is my first big Java/Android app project. To maintain openness, I used AI to help me with a lot of stuff, and while the code is tested and reviewed by me personally, there may still be some non-standard practices, bugs, or issues that might appear to you as a no-brainer. But as mentioned, this is my first big open-source project and with the help of the community it can be significantly improved!
+
+Feel free to connect or send feedback via Telegram: [@bn3di](https://t.me/bn3di).
+
 ---
 
 ## 📖 Table of Contents
