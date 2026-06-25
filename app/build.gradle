@@ -6,12 +6,22 @@ android {
         compileSdk 36
         minSdkVersion 24
         targetSdkVersion 36
-        versionCode 146
-        versionName "6.4.1"
+        versionCode 147
+        versionName "6.4.2"
         ndk {
             abiFilters "arm64-v8a", "armeabi-v7a"
         }
     }
+    flavorDimensions "engine"
+    productFlavors {
+        mlkit {
+            dimension "engine"
+        }
+        nomlkit {
+            dimension "engine"
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled true
@@ -22,5 +32,5 @@ android {
 }
 
 dependencies {
-    implementation 'com.google.mlkit:translate:17.0.3'
+    mlkitImplementation 'com.google.mlkit:translate:17.0.3'
 }

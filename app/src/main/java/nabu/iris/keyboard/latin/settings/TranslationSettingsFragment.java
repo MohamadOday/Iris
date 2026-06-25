@@ -15,6 +15,8 @@ import android.preference.PreferenceCategory;
 import android.widget.Toast;
 
 import nabu.iris.keyboard.R;
+import nabu.iris.keyboard.latin.MlKitClearCallback;
+import nabu.iris.keyboard.latin.MlKitTranslatorWrapper;
 
 /**
  * "Translation Settings" sub screen.
@@ -96,55 +98,39 @@ public final class TranslationSettingsFragment extends SubScreenFragment {
             clearPref.setEnabled(false);
         }
 
-        try {
-            com.google.mlkit.common.model.RemoteModelManager modelManager = 
-                    com.google.mlkit.common.model.RemoteModelManager.getInstance();
-            
-            modelManager.getDownloadedModels(com.google.mlkit.nl.translate.TranslateRemoteModel.class)
-                    .addOnSuccessListener(models -> {
-                        if (models == null || models.isEmpty()) {
-                            mHandler.post(() -> {
-                                Toast.makeText(getActivity(), "No offline models to clear.", Toast.LENGTH_SHORT).show();
-                                if (clearPref != null) {
-                                    clearPref.setSummary("Deletes all downloaded local ML Kit translation models to reclaim space and RAM (~30MB+ per model).");
-                                    clearPref.setEnabled(true);
-                                }
-                            });
-                            return;
-                        }
-
-                        int count = models.size();
-                        final java.util.concurrent.atomic.AtomicInteger deletedCount = new java.util.concurrent.atomic.AtomicInteger(0);
-
-                        for (com.google.mlkit.nl.translate.TranslateRemoteModel model : models) {
-                            modelManager.deleteDownloadedModel(model)
-                                    .addOnCompleteListener(task -> {
-                                        int deleted = deletedCount.incrementAndGet();
-                                        if (deleted == count) {
-                                            mHandler.post(() -> {
-                                                Toast.makeText(getActivity(), "Cleared " + count + " offline model(s) successfully!", Toast.LENGTH_SHORT).show();
-                                                if (clearPref != null) {
-                                                    clearPref.setSummary("Deletes all downloaded local ML Kit translation models to reclaim space and RAM (~30MB+ per model).");
-                                                    clearPref.setEnabled(true);
-                                                }
-                                            });
-                                        }
-                                    });
-                        }
-                    })
-                    .addOnFailureListener(e -> mHandler.post(() -> {
-                        Toast.makeText(getActivity(), "Failed to retrieve models: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                        if (clearPref != null) {
-                            clearPref.setSummary("Deletes all downloaded local ML Kit translation models to reclaim space and RAM (~30MB+ per model).");
-                            clearPref.setEnabled(true);
-                        }
-                    }));
-        } catch (Exception e) {
-            Toast.makeText(getActivity(), "Error clearing models: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            if (clearPref != null) {
-                clearPref.setSummary("Deletes all downloaded local ML Kit translation models to reclaim space and RAM (~30MB+ per model).");
-                clearPref.setEnabled(true);
+        MlKitTranslatorWrapper.clearDownloadedModels(new MlKitClearCallback() {
+            @Override
+            public void onSuccess(final int count) {
+                mHandler.post(() -> {
+                    Toast.makeText(getActivity(), "Cleared " + count + " offline model(s) successfully!", Toast.LENGTH_SHORT).show();
+                    if (clearPref != null) {
+                        clearPref.setSummary("Deletes all downloaded local ML Kit translation models to reclaim space and RAM (~30MB+ per model).");
+                        clearPref.setEnabled(true);
+                    }
+                });
             }
-        }
+
+            @Override
+            public void onNoModels() {
+                mHandler.post(() -> {
+                    Toast.makeText(getActivity(), "No offline models to clear.", Toast.LENGTH_SHORT).show();
+                    if (clearPref != null) {
+                        clearPref.setSummary("Deletes all downloaded local ML Kit translation models to reclaim space and RAM (~30MB+ per model).");
+                        clearPref.setEnabled(true);
+                    }
+                });
+            }
+
+            @Override
+            public void onFailure(final String errorMessage) {
+                mHandler.post(() -> {
+                    Toast.makeText(getActivity(), "Failed to clear models: " + errorMessage, Toast.LENGTH_SHORT).show();
+                    if (clearPref != null) {
+                        clearPref.setSummary("Deletes all downloaded local ML Kit translation models to reclaim space and RAM (~30MB+ per model).");
+                        clearPref.setEnabled(true);
+                    }
+                });
+            }
+        });
     }
 }

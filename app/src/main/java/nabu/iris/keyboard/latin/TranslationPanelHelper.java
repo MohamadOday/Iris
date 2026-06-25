@@ -20,11 +20,7 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.google.mlkit.common.model.DownloadConditions;
-import com.google.mlkit.nl.translate.TranslateLanguage;
-import com.google.mlkit.nl.translate.Translation;
-import com.google.mlkit.nl.translate.Translator;
-import com.google.mlkit.nl.translate.TranslatorOptions;
+
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -65,9 +61,7 @@ public final class TranslationPanelHelper {
     private final Handler mTranslateHandler = new Handler(Looper.getMainLooper());
     private Runnable mTranslateRunnable;
     private final ExecutorService mTranslationExecutor = Executors.newSingleThreadExecutor();
-    private Translator mActiveTranslator = null;
-    private String mActiveTranslatorSource = null;
-    private String mActiveTranslatorTarget = null;
+
     
     private final String[] mLangNames = {"Auto-detect", "English", "Spanish", "French", "German", "Italian", "Portuguese", "Chinese", "Japanese", "Korean", "Russian", "Arabic", "Hindi", "Turkish", "Polish", "Dutch"};
     private final String[] mLangCodes = {"auto", "en", "es", "fr", "de", "it", "pt", "zh", "ja", "ko", "ru", "ar", "hi", "tr", "pl", "nl"};
@@ -298,86 +292,53 @@ public final class TranslationPanelHelper {
     }
 
     private void translateViaMlKit(final String text) {
-        if ("auto".equals(mTranslateSourceLang)) {
-            postTranslationFailure("Auto-detect not supported offline.");
+        if (!MlKitTranslatorWrapper.isSupported()) {
+            postTranslationFailure("Offline translation is not supported in this build flavor.");
             return;
         }
 
-        final String sourceTag = TranslateLanguage.fromLanguageTag(mTranslateSourceLang);
-        final String targetTag = TranslateLanguage.fromLanguageTag(mTranslateTargetLang);
-
-        if (sourceTag == null || targetTag == null) {
-            postTranslationFailure("Unsupported offline language pair.");
-            return;
-        }
-        
-        try {
-            if (mActiveTranslator != null && 
-                sourceTag.equals(mActiveTranslatorSource) && 
-                targetTag.equals(mActiveTranslatorTarget)) {
-                
-                performMlKitTranslation(mActiveTranslator, text);
-            } else {
-                releaseActiveTranslator();
-                
-                TranslatorOptions options = new TranslatorOptions.Builder()
-                        .setSourceLanguage(sourceTag)
-                        .setTargetLanguage(targetTag)
-                        .build();
-                
-                final Translator translator = Translation.getClient(options);
-                mActiveTranslator = translator;
-                mActiveTranslatorSource = sourceTag;
-                mActiveTranslatorTarget = targetTag;
-                
-                DownloadConditions conditions = new DownloadConditions.Builder().build();
-                
-                mTranslateResultPreview.setText("");
-                mTranslateInsertBtn.setVisibility(View.GONE);
-                startDownloadProgressAnimation();
-                
-                translator.downloadModelIfNeeded(conditions)
-                        .addOnSuccessListener(unused -> {
-                            mTranslateHandler.post(() -> {
-                                if (mActiveTranslator == translator) {
-                                    stopDownloadProgressAnimation();
-                                    performMlKitTranslation(translator, text);
-                                }
-                            });
-                        })
-                        .addOnFailureListener(e -> {
-                            mTranslateHandler.post(() -> {
-                                if (mActiveTranslator == translator) {
-                                    stopDownloadProgressAnimation();
-                                    postTranslationFailure("Download failed: " + e.getMessage());
-                                }
-                            });
-                        });
-            }
-        } catch (Exception e) {
-            postTranslationFailure("ML Kit Init Error: " + e.getMessage());
-        }
-    }
-
-    private void performMlKitTranslation(final Translator translator, final String text) {
-        mTranslateResultPreview.setText("Translating offline...");
-        translator.translate(text)
-                .addOnSuccessListener(translatedText -> {
-                    mTranslateHandler.post(() -> {
-                        if (mActiveTranslator == translator) {
-                            showTranslateProgress(false);
-                            mTranslateResultPreview.setText(translatedText);
-                            mTranslateInsertBtn.setVisibility(View.VISIBLE);
-                        }
-                    });
-                })
-                .addOnFailureListener(e -> {
-                    mTranslateHandler.post(() -> {
-                        if (mActiveTranslator == translator) {
-                            postTranslationFailure("Translation failed: " + e.getMessage());
-                        }
-                    });
+        MlKitTranslatorWrapper.translate(mTranslateSourceLang, mTranslateTargetLang, text, new MlKitCallback() {
+            @Override
+            public void onSuccess(final String translatedText) {
+                mTranslateHandler.post(() -> {
+                    showTranslateProgress(false);
+                    mTranslateResultPreview.setText(translatedText);
+                    mTranslateInsertBtn.setVisibility(View.VISIBLE);
                 });
+            }
+
+            @Override
+            public void onFailure(final String errorMessage) {
+                postTranslationFailure(errorMessage);
+            }
+
+            @Override
+            public void onDownloadStart() {
+                mTranslateHandler.post(() -> {
+                    mTranslateResultPreview.setText("");
+                    mTranslateInsertBtn.setVisibility(View.GONE);
+                    startDownloadProgressAnimation();
+                });
+            }
+
+            @Override
+            public void onDownloadComplete() {
+                mTranslateHandler.post(() -> stopDownloadProgressAnimation());
+            }
+
+            @Override
+            public void onDownloadFailure(final String errorMessage) {
+                mTranslateHandler.post(() -> {
+                    stopDownloadProgressAnimation();
+                    postTranslationFailure(errorMessage);
+                });
+            }
+
+            @Override
+            public void onTranslatingOffline() {
+                mTranslateHandler.post(() -> mTranslateResultPreview.setText("Translating offline..."));
+            }
+        });
     }
 
     private void translateViaAi(final String text) {
@@ -442,16 +403,7 @@ public final class TranslationPanelHelper {
     }
 
     private void releaseActiveTranslator() {
-        if (mActiveTranslator != null) {
-            try {
-                mActiveTranslator.close();
-            } catch (Exception e) {
-                // Ignore
-            }
-            mActiveTranslator = null;
-            mActiveTranslatorSource = null;
-            mActiveTranslatorTarget = null;
-        }
+        MlKitTranslatorWrapper.release();
     }
 
     private void startDownloadProgressAnimation() {
