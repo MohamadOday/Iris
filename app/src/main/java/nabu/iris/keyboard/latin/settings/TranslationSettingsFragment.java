@@ -36,12 +36,39 @@ public final class TranslationSettingsFragment extends SubScreenFragment {
         super.onCreate(icicle);
         addPreferencesFromResource(R.xml.prefs_screen_translation);
 
-        final Preference clearPref = findPreference(KEY_CLEAR_MODELS);
-        if (clearPref != null) {
-            clearPref.setOnPreferenceClickListener(pref -> {
-                clearDownloadedMlKitModels();
-                return true;
-            });
+        if (!MlKitTranslatorWrapper.isSupported()) {
+            final Preference mlkitCategory = findPreference("cat_translate_mlkit");
+            if (mlkitCategory != null) {
+                getPreferenceScreen().removePreference(mlkitCategory);
+            }
+            final ListPreference modePref = (ListPreference) findPreference(KEY_TRANSLATE_MODE);
+            if (modePref != null) {
+                final CharSequence[] entries = modePref.getEntries();
+                final CharSequence[] entryValues = modePref.getEntryValues();
+                if (entries != null && entryValues != null) {
+                    final java.util.List<CharSequence> newEntries = new java.util.ArrayList<>();
+                    final java.util.List<CharSequence> newValues = new java.util.ArrayList<>();
+                    for (int i = 0; i < entryValues.length; i++) {
+                        if (!"mlkit".equals(entryValues[i].toString())) {
+                            newEntries.add(entries[i]);
+                            newValues.add(entryValues[i]);
+                        }
+                    }
+                    modePref.setEntries(newEntries.toArray(new CharSequence[0]));
+                    modePref.setEntryValues(newValues.toArray(new CharSequence[0]));
+                    if ("mlkit".equals(modePref.getValue())) {
+                        modePref.setValue("scraping");
+                    }
+                }
+            }
+        } else {
+            final Preference clearPref = findPreference(KEY_CLEAR_MODELS);
+            if (clearPref != null) {
+                clearPref.setOnPreferenceClickListener(pref -> {
+                    clearDownloadedMlKitModels();
+                    return true;
+                });
+            }
         }
 
         updateAllSummaries();

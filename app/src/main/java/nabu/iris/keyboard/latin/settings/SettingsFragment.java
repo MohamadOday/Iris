@@ -19,10 +19,13 @@
 package nabu.iris.keyboard.latin.settings;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
+import nabu.iris.keyboard.latin.RichInputMethodManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.Preference;
@@ -191,6 +194,18 @@ public final class SettingsFragment extends InputMethodSettingsFragment {
                 sb.append(line);
             }
             JSONObject json = new JSONObject(sb.toString());
+
+            // Check if imported soundpack is missing on this device
+            String importedSoundpack = json.optString("pref_keypress_soundpack", "default");
+            boolean soundpackMissing = false;
+            if (!importedSoundpack.equals("default") && !importedSoundpack.equals("default_deep")) {
+                java.io.File soundpacksDir = getActivity().getExternalFilesDir("soundpacks");
+                java.io.File packDir = soundpacksDir != null ? new java.io.File(soundpacksDir, importedSoundpack) : null;
+                if (packDir == null || !packDir.exists() || !packDir.isDirectory()) {
+                    soundpackMissing = true;
+                }
+            }
+
             SharedPreferences prefs = PreferenceManagerCompat.getDeviceSharedPreferences(getActivity());
             SharedPreferences.Editor editor = prefs.edit();
             editor.clear();
@@ -219,10 +234,46 @@ public final class SettingsFragment extends InputMethodSettingsFragment {
                 }
             }
             editor.commit();
+
+            // Reload subtypes (languages) immediately so they take effect in memory
+            RichInputMethodManager.getInstance().reloadSubtypes(getActivity());
+
             Toast.makeText(getActivity(), "Settings imported successfully", Toast.LENGTH_LONG).show();
             
-            if (getActivity() != null) {
-                getActivity().recreate();
+            final Activity activity = getActivity();
+            if (activity != null && !activity.isFinishing()) {
+                if (soundpackMissing) {
+                    final String finalSoundpack = importedSoundpack;
+                    new AlertDialog.Builder(activity)
+                        .setTitle("Soundpack Not Found")
+                        .setMessage("The imported settings use the soundpack '" + finalSoundpack.replace("_", " ") + "', which is not downloaded. Would you like to download it now or reset to the default soundpack?")
+                        .setPositiveButton("Download", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                Intent intent = new Intent(activity, SoundpackDownloadActivity.class);
+                                activity.startActivity(intent);
+                                activity.recreate();
+                            }
+                        })
+                        .setNegativeButton("Reset to Default", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                SharedPreferences p = PreferenceManagerCompat.getDeviceSharedPreferences(activity);
+                                p.edit().putString("pref_keypress_soundpack", "default").apply();
+                                activity.recreate();
+                            }
+                        })
+                        .setNeutralButton("Cancel", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                activity.recreate();
+                            }
+                        })
+                        .setCancelable(false)
+                        .show();
+                } else {
+                    activity.recreate();
+                }
             }
         } catch (Exception e) {
             Log.e(TAG, "Import failed", e);

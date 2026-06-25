@@ -38,8 +38,9 @@ To support different user preferences, system configurations, and maintain a ful
 * **Iris-MlKit (Recommended for Offline Translation):**
   * **What it is:** Includes the **Google ML Kit Offline Translation** engine, which allows you to download offline language translation packs (~30MB+ per language) directly inside the keyboard settings.
   * ⚠️ **Important:** To download and run the offline translation models, **Google Play Services** must be installed and active on your phone.
-* **Iris-NoMlKit (Fully FOSS):**
+* **Iris-NoMlKit (Fully FOSS & Ultra-Lightweight):**
   * **What it is:** A fully free-and-open-source version that completely strips out the Google ML Kit library dependencies and proprietary SDK binaries, making it fully compatible with FOSS stores like F-Droid or IzzyOnDroid.
+  * 🚀 **Ultra-Lightweight:** Because all ML Kit dependencies are completely excluded, the download size of this APK is **under 1 MB**!
   * **Offline Translation Support:** Offline translation is not supported in this version. When selected, it displays a *"Offline translation not supported"* error. Note that all other translation modes (online Web Scraping translation and AI-powered translation) still function perfectly!
 
 ---
