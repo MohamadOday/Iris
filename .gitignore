@@ -39,3 +39,4 @@ local.properties
 ehthumbs.db
 Thumbs.db
 deploy.sh
+termux_workflow.md
