@@ -29,6 +29,10 @@
         android:title="@string/settings_screen_appearance"
         android:key="screen_appearance" />
     <PreferenceScreen
+        android:fragment="nabu.iris.keyboard.latin.settings.PersonalizationSettingsFragment"
+        android:title="Personalization"
+        android:key="screen_personalization" />
+    <PreferenceScreen
         android:fragment="nabu.iris.keyboard.latin.settings.AiSettingsFragment"
         android:title="AI Copilot Studio"
         android:key="screen_ai" />

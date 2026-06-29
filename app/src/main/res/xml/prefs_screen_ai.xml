@@ -19,22 +19,19 @@
         android:summary="Choose your AI backend"
         android:entries="@array/ai_provider_names"
         android:entryValues="@array/ai_provider_values"
-        android:defaultValue="ollama"
-        android:dependency="pref_ai_enabled" />
+        android:defaultValue="ollama" />
 
     <!-- System Prompt -->
     <EditTextPreference
         android:key="pref_ai_system_prompt"
         android:title="System Prompt"
         android:summary="Custom system instruction prepended to every AI request"
-        android:defaultValue="You are a helpful assistant integrated into a mobile keyboard. Be concise and direct."
-        android:dependency="pref_ai_enabled" />
+        android:defaultValue="You are a helpful assistant integrated into a mobile keyboard. Be concise and direct." />
 
     <!-- Gemini Cloud Settings -->
     <PreferenceCategory
         android:key="cat_gemini"
-        android:title="GEMINI CLOUD"
-        android:dependency="pref_ai_enabled">
+        android:title="GEMINI CLOUD">
         <EditTextPreference
             android:key="pref_gemini_key"
             android:title="API Key"
@@ -50,8 +47,7 @@
     <!-- Local Ollama Settings -->
     <PreferenceCategory
         android:key="cat_ollama"
-        android:title="LOCAL OLLAMA"
-        android:dependency="pref_ai_enabled">
+        android:title="LOCAL OLLAMA">
         <EditTextPreference
             android:key="pref_ollama_url"
             android:title="Host URL"
@@ -67,8 +63,7 @@
     <!-- Custom OpenAI-Compatible API Settings -->
     <PreferenceCategory
         android:key="cat_custom"
-        android:title="CUSTOM API (OPENAI-COMPATIBLE)"
-        android:dependency="pref_ai_enabled">
+        android:title="CUSTOM API (OPENAI-COMPATIBLE)">
         <EditTextPreference
             android:key="pref_custom_url"
             android:title="Base URL"
@@ -89,8 +84,7 @@
     <!-- Advanced -->
     <PreferenceCategory
         android:key="cat_advanced"
-        android:title="ADVANCED"
-        android:dependency="pref_ai_enabled">
+        android:title="ADVANCED">
         <ListPreference
             android:key="pref_ai_temperature"
             android:title="Temperature"

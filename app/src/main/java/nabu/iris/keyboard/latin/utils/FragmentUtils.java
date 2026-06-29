@@ -29,6 +29,7 @@ import nabu.iris.keyboard.latin.settings.PreferencesSettingsFragment;
 import nabu.iris.keyboard.latin.settings.SettingsFragment;
 import nabu.iris.keyboard.latin.settings.SingleLanguageSettingsFragment;
 import nabu.iris.keyboard.latin.settings.ThemeSettingsFragment;
+import nabu.iris.keyboard.latin.settings.PersonalizationSettingsFragment;
 
 public class FragmentUtils {
     private static final HashSet<String> sLatinImeFragments = new HashSet<>();
@@ -42,6 +43,7 @@ public class FragmentUtils {
         sLatinImeFragments.add(SingleLanguageSettingsFragment.class.getName());
         sLatinImeFragments.add(AiSettingsFragment.class.getName());
         sLatinImeFragments.add(TranslationSettingsFragment.class.getName());
+        sLatinImeFragments.add(PersonalizationSettingsFragment.class.getName());
     }
 
     public static boolean isValidFragment(String fragmentName) {

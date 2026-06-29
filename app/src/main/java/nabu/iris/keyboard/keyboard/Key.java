@@ -860,6 +860,10 @@ public class Key implements Comparable<Key> {
         mPressed = false;
     }
 
+    public boolean isPressed() {
+        return mPressed;
+    }
+
     /**
      * Detects if a point falls on this key.
      * @param x the x-coordinate of the point

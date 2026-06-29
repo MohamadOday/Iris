@@ -93,6 +93,23 @@ public class KeyboardView extends View {
     protected int mCustomColor = 0;
     protected KeyboardTheme mTheme;
 
+    // Personalization customizations
+    private String mKeyShapeSetting = "default";
+    private boolean mKeyBgImageActive = false;
+    private android.graphics.Bitmap mCustomKeyBgBitmap = null;
+    private int mKeyNormalColor = 0;
+    private int mKeyPressedColor = 0;
+    private boolean mColorsResolved = false;
+    private String mKeySizeMode = "uniform";
+    private int mKeySizeScale = 100;
+    private int mKeyWidthScale = 100;
+    private int mKeyHeightScale = 100;
+    private int mKeyGapX = 2; // dp
+    private int mKeyGapY = 3; // dp
+    private boolean mKbdBgImageActive = false;
+    private String mKbdBgImageStyle = "stretch";
+    private android.graphics.Bitmap mCustomKbdBgBitmap = null;
+
     // The maximum key label width in the proportion to the key width.
     private static final float MAX_LABEL_RATIO = 0.90f;
 
@@ -173,6 +190,20 @@ public class KeyboardView extends View {
         final SharedPreferences prefs = PreferenceManagerCompat.getDeviceSharedPreferences(getContext());
         mCustomColor = Settings.readKeyboardColor(prefs, getContext());
         mTheme = Settings.getKeyboardTheme(getContext());
+
+        mKeyShapeSetting = prefs.getString("pref_key_shape", "default");
+        mKeyBgImageActive = prefs.getBoolean("pref_key_bg_image_active", false);
+        mKbdBgImageActive = prefs.getBoolean("pref_kbd_bg_image_active", false);
+        mKbdBgImageStyle = prefs.getString("pref_kbd_bg_image_style", "stretch");
+        mKeySizeMode = prefs.getString("pref_key_size_mode", "uniform");
+        mKeySizeScale = prefs.getInt("pref_key_size_scale", 100);
+        mKeyWidthScale = prefs.getInt("pref_key_width_scale", 100);
+        mKeyHeightScale = prefs.getInt("pref_key_height_scale", 100);
+        mKeyGapX = prefs.getInt("pref_key_gap_x", 2);
+        mKeyGapY = prefs.getInt("pref_key_gap_y", 3);
+        loadPersonalizationAssets();
+        mColorsResolved = false;
+
         invalidateAllKeys();
         requestLayout();
     }
@@ -257,6 +288,44 @@ public class KeyboardView extends View {
             return;
         }
 
+        // Dynamically load personalization preferences on draw to ensure live updates.
+        final SharedPreferences prefs = PreferenceManagerCompat.getDeviceSharedPreferences(getContext());
+        String currentShape = prefs.getString("pref_key_shape", "default");
+        boolean currentBgActive = prefs.getBoolean("pref_key_bg_image_active", false);
+        boolean currentKbdBgActive = prefs.getBoolean("pref_kbd_bg_image_active", false);
+        String currentKbdBgStyle = prefs.getString("pref_kbd_bg_image_style", "stretch");
+        String currentSizeMode = prefs.getString("pref_key_size_mode", "uniform");
+        int currentSizeScale = prefs.getInt("pref_key_size_scale", 100);
+        int currentWidthScale = prefs.getInt("pref_key_width_scale", 100);
+        int currentHeightScale = prefs.getInt("pref_key_height_scale", 100);
+        int currentGapX = prefs.getInt("pref_key_gap_x", 2);
+        int currentGapY = prefs.getInt("pref_key_gap_y", 3);
+        if (!currentShape.equals(mKeyShapeSetting) 
+                || currentBgActive != mKeyBgImageActive 
+                || currentKbdBgActive != mKbdBgImageActive 
+                || !currentKbdBgStyle.equals(mKbdBgImageStyle)
+                || !currentSizeMode.equals(mKeySizeMode)
+                || currentSizeScale != mKeySizeScale
+                || currentWidthScale != mKeyWidthScale
+                || currentHeightScale != mKeyHeightScale
+                || currentGapX != mKeyGapX
+                || currentGapY != mKeyGapY
+                || (mCustomKeyBgBitmap == null && currentBgActive)
+                || (mCustomKbdBgBitmap == null && currentKbdBgActive)) {
+            mKeyShapeSetting = currentShape;
+            mKeyBgImageActive = currentBgActive;
+            mKbdBgImageActive = currentKbdBgActive;
+            mKbdBgImageStyle = currentKbdBgStyle;
+            mKeySizeMode = currentSizeMode;
+            mKeySizeScale = currentSizeScale;
+            mKeyWidthScale = currentWidthScale;
+            mKeyHeightScale = currentHeightScale;
+            mKeyGapX = currentGapX;
+            mKeyGapY = currentGapY;
+            loadPersonalizationAssets();
+            mColorsResolved = false;
+        }
+
         final Paint paint = mPaint;
         final Drawable background = getBackground();
         if (background != null && mTheme.mCustomColorSupport) {
@@ -276,6 +345,7 @@ public class KeyboardView extends View {
                 canvas.drawColor(Color.BLACK, PorterDuff.Mode.CLEAR);
                 background.draw(canvas);
             }
+            drawKbdBg(canvas);
             // Draw all keys.
             for (final Key key : keyboard.getSortedKeys()) {
                 onDrawKey(key, canvas, paint);
@@ -294,6 +364,7 @@ public class KeyboardView extends View {
                     canvas.clipRect(mClipRect);
                     canvas.drawColor(Color.BLACK, PorterDuff.Mode.CLEAR);
                     background.draw(canvas);
+                    drawKbdBg(canvas);
                     canvas.restore();
                 }
                 onDrawKey(key, canvas, paint);
@@ -336,13 +407,126 @@ public class KeyboardView extends View {
         final int bgHeight = keyHeight + padding.top + padding.bottom;
         final int bgX = -padding.left;
         final int bgY = -padding.top;
-        final Rect bounds = background.getBounds();
-        if (bgWidth != bounds.right || bgHeight != bounds.bottom) {
-            background.setBounds(0, 0, bgWidth, bgHeight);
+
+        boolean isCustomScale = "custom".equals(mKeySizeMode);
+        boolean hasScale = (isCustomScale && (mKeyWidthScale != 100 || mKeyHeightScale != 100)) 
+                || (!isCustomScale && mKeySizeScale != 100);
+
+        if ("default".equals(mKeyShapeSetting) && !mKeyBgImageActive && !hasScale && mKeyGapX == 2 && mKeyGapY == 3) {
+            final Rect bounds = background.getBounds();
+            if (bgWidth != bounds.right || bgHeight != bounds.bottom) {
+                background.setBounds(0, 0, bgWidth, bgHeight);
+            }
+            canvas.translate(bgX, bgY);
+            background.draw(canvas);
+            canvas.translate(-bgX, -bgY);
+            return;
         }
-        canvas.translate(bgX, bgY);
-        background.draw(canvas);
-        canvas.translate(-bgX, -bgY);
+
+        if (!mColorsResolved) {
+            final android.util.TypedValue typedValue = new android.util.TypedValue();
+            if (getContext().getTheme().resolveAttribute(R.attr.keyNormalBackgroundColor, typedValue, true)) {
+                mKeyNormalColor = typedValue.data;
+            } else {
+                mKeyNormalColor = 0x33FFFFFF;
+            }
+            if (getContext().getTheme().resolveAttribute(R.attr.keyPressedBackgroundColor, typedValue, true)) {
+                mKeyPressedColor = typedValue.data;
+            } else {
+                mKeyPressedColor = 0x66FFFFFF;
+            }
+            mColorsResolved = true;
+        }
+
+        float density = getResources().getDisplayMetrics().density;
+        
+        // Draw custom shape inside custom padding boundaries
+        float gapX = mKeyGapX * density;
+        float gapY = mKeyGapY * density;
+        float left = bgX + gapX;
+        float top = bgY + gapY;
+        float right = bgX + bgWidth - gapX;
+        float bottom = bgY + bgHeight - gapY;
+
+        if (left >= right || top >= bottom) {
+            left = 0;
+            top = 0;
+            right = keyWidth;
+            bottom = keyHeight;
+        }
+
+        // Apply Key Size Scale preference around center of bounds
+        if (hasScale) {
+            float scaleX, scaleY;
+            if (isCustomScale) {
+                scaleX = mKeyWidthScale / 100.0f;
+                scaleY = mKeyHeightScale / 100.0f;
+            } else {
+                scaleX = mKeySizeScale / 100.0f;
+                scaleY = mKeySizeScale / 100.0f;
+            }
+            float cx = left + (right - left) / 2.0f;
+            float cy = top + (bottom - top) / 2.0f;
+            float halfW = ((right - left) / 2.0f) * scaleX;
+            float halfH = ((bottom - top) / 2.0f) * scaleY;
+            left = cx - halfW;
+            right = cx + halfW;
+            top = cy - halfH;
+            bottom = cy + halfH;
+        }
+
+        android.graphics.Path path = new android.graphics.Path();
+        if ("circle".equals(mKeyShapeSetting)) {
+            float cx = left + (right - left) / 2.0f;
+            float cy = top + (bottom - top) / 2.0f;
+            float radius = Math.min(right - left, bottom - top) / 2.0f;
+            path.addCircle(cx, cy, radius, android.graphics.Path.Direction.CW);
+        } else if ("squircle".equals(mKeyShapeSetting)) {
+            path = getSquirclePath(left, top, right, bottom);
+        } else if ("hexagon".equals(mKeyShapeSetting)) {
+            path = getHexagonPath(left, top, right, bottom);
+        } else if ("square".equals(mKeyShapeSetting)) {
+            path.addRect(left, top, right, bottom, android.graphics.Path.Direction.CW);
+        } else { // "default" or "rounded"
+            float radius = getResources().getDimension(R.dimen.button_corner_radius_lxx);
+            if (hasScale) {
+                float avgScale = isCustomScale ? (mKeyWidthScale + mKeyHeightScale) / 200.0f : mKeySizeScale / 100.0f;
+                radius = radius * avgScale;
+            }
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                path.addRoundRect(left, top, right, bottom, radius, radius, android.graphics.Path.Direction.CW);
+            } else {
+                path.addRoundRect(new android.graphics.RectF(left, top, right, bottom), radius, radius, android.graphics.Path.Direction.CW);
+            }
+        }
+
+        Paint fillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        fillPaint.setStyle(Paint.Style.FILL);
+        if (key.isPressed()) {
+            fillPaint.setColor(mKeyPressedColor);
+        } else {
+            fillPaint.setColor(mKeyNormalColor);
+        }
+        canvas.drawPath(path, fillPaint);
+
+        if (mKeyBgImageActive && mCustomKeyBgBitmap != null) {
+            canvas.save();
+            canvas.clipPath(path);
+            canvas.drawBitmap(mCustomKeyBgBitmap, null, new android.graphics.RectF(left, top, right, bottom), null);
+            if (key.isPressed()) {
+                Paint overlayPaint = new Paint();
+                overlayPaint.setColor(0x40000000);
+                canvas.drawRect(left, top, right, bottom, overlayPaint);
+            }
+            canvas.restore();
+        }
+
+        Paint strokePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        strokePaint.setStyle(Paint.Style.STROKE);
+        strokePaint.setStrokeWidth(1.0f * density);
+        boolean isDarkTheme = isColorDark(mKeyNormalColor);
+        strokePaint.setColor(isDarkTheme ? 0x1AFFFFFF : 0x12000000);
+        canvas.drawPath(path, strokePaint);
     }
 
     // Draw key top visuals.
@@ -515,9 +699,134 @@ public class KeyboardView extends View {
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
         freeOffscreenBuffer();
+        if (mCustomKeyBgBitmap != null) {
+            mCustomKeyBgBitmap.recycle();
+            mCustomKeyBgBitmap = null;
+        }
+        if (mCustomKbdBgBitmap != null) {
+            mCustomKbdBgBitmap.recycle();
+            mCustomKbdBgBitmap = null;
+        }
     }
 
     public void deallocateMemory() {
         freeOffscreenBuffer();
+        if (mCustomKeyBgBitmap != null) {
+            mCustomKeyBgBitmap.recycle();
+            mCustomKeyBgBitmap = null;
+        }
+        if (mCustomKbdBgBitmap != null) {
+            mCustomKbdBgBitmap.recycle();
+            mCustomKbdBgBitmap = null;
+        }
+    }
+
+    private void loadPersonalizationAssets() {
+        if (mCustomKeyBgBitmap != null) {
+            mCustomKeyBgBitmap.recycle();
+            mCustomKeyBgBitmap = null;
+        }
+        if (mKeyBgImageActive) {
+            try {
+                java.io.File file = new java.io.File(getContext().getFilesDir(), "key_background_custom.png");
+                if (file.exists()) {
+                    mCustomKeyBgBitmap = android.graphics.BitmapFactory.decodeFile(file.getAbsolutePath());
+                }
+            } catch (Exception e) {
+                android.util.Log.e("KeyboardView", "Failed to load custom key background bitmap", e);
+            }
+        }
+
+        if (mCustomKbdBgBitmap != null) {
+            mCustomKbdBgBitmap.recycle();
+            mCustomKbdBgBitmap = null;
+        }
+        if (mKbdBgImageActive) {
+            try {
+                java.io.File file = new java.io.File(getContext().getFilesDir(), "keyboard_background_custom.png");
+                if (file.exists()) {
+                    mCustomKbdBgBitmap = android.graphics.BitmapFactory.decodeFile(file.getAbsolutePath());
+                }
+            } catch (Exception e) {
+                android.util.Log.e("KeyboardView", "Failed to load custom keyboard background bitmap", e);
+            }
+        }
+    }
+
+    private android.graphics.Path getSquirclePath(float left, float top, float right, float bottom) {
+        android.graphics.Path path = new android.graphics.Path();
+        float width = right - left;
+        float height = bottom - top;
+        float cx = left + width / 2.0f;
+        float cy = top + height / 2.0f;
+        float rx = width / 2.0f;
+        float ry = height / 2.0f;
+
+        int steps = 64;
+        double n = 4.0;
+        for (int i = 0; i < steps; i++) {
+            double angle = (2.0 * Math.PI * i) / steps;
+            double cos = Math.cos(angle);
+            double sin = Math.sin(angle);
+
+            double x = Math.signum(cos) * Math.pow(Math.abs(cos), 2.0 / n) * rx;
+            double y = Math.signum(sin) * Math.pow(Math.abs(sin), 2.0 / n) * ry;
+
+            if (i == 0) {
+                path.moveTo((float)(cx + x), (float)(cy + y));
+            } else {
+                path.lineTo((float)(cx + x), (float)(cy + y));
+            }
+        }
+        path.close();
+        return path;
+    }
+
+    private android.graphics.Path getHexagonPath(float left, float top, float right, float bottom) {
+        android.graphics.Path path = new android.graphics.Path();
+        float width = right - left;
+        float height = bottom - top;
+        float cy = top + height / 2.0f;
+
+        path.moveTo(left + width / 4.0f, top);
+        path.lineTo(right - width / 4.0f, top);
+        path.lineTo(right, cy);
+        path.lineTo(right - width / 4.0f, bottom);
+        path.lineTo(left + width / 4.0f, bottom);
+        path.lineTo(left, cy);
+        path.close();
+        return path;
+    }
+
+    private static boolean isColorDark(final int color) {
+        final double darkness = 1 - (0.299 * Color.red(color) + 0.587 * Color.green(color) + 0.114 * Color.blue(color)) / 255.0;
+        return darkness >= 0.5;
+    }
+
+    private android.graphics.Rect getCenterCropRect(int bitmapWidth, int bitmapHeight, int viewWidth, int viewHeight) {
+        float bitmapRatio = (float) bitmapWidth / bitmapHeight;
+        float viewRatio = (float) viewWidth / viewHeight;
+        int srcLeft = 0, srcTop = 0, srcRight = bitmapWidth, srcBottom = bitmapHeight;
+        if (bitmapRatio > viewRatio) {
+            int newWidth = (int) (bitmapHeight * viewRatio);
+            srcLeft = (bitmapWidth - newWidth) / 2;
+            srcRight = srcLeft + newWidth;
+        } else {
+            int newHeight = (int) (bitmapWidth / viewRatio);
+            srcTop = (bitmapHeight - newHeight) / 2;
+            srcBottom = srcTop + newHeight;
+        }
+        return new android.graphics.Rect(srcLeft, srcTop, srcRight, srcBottom);
+    }
+
+    private void drawKbdBg(final Canvas canvas) {
+        if (mKbdBgImageActive && mCustomKbdBgBitmap != null) {
+            if ("crop".equals(mKbdBgImageStyle)) {
+                android.graphics.Rect srcRect = getCenterCropRect(mCustomKbdBgBitmap.getWidth(), mCustomKbdBgBitmap.getHeight(), getWidth(), getHeight());
+                canvas.drawBitmap(mCustomKbdBgBitmap, srcRect, new android.graphics.Rect(0, 0, getWidth(), getHeight()), null);
+            } else {
+                canvas.drawBitmap(mCustomKbdBgBitmap, null, new android.graphics.Rect(0, 0, getWidth(), getHeight()), null);
+            }
+        }
     }
 }

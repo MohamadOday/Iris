@@ -40,8 +40,12 @@ public final class AiSettingsFragment extends SubScreenFragment {
         super.onCreate(icicle);
         addPreferencesFromResource(R.xml.prefs_screen_ai);
 
+        setupPreferenceInterceptors();
+
         // Wire up test connection button
         final Preference testPref = findPreference(KEY_TEST_CONNECTION);
+        // Note: The listener will be wrapped inside setupPreferenceInterceptors.
+        // We only set the original click listener here.
         if (testPref != null) {
             testPref.setOnPreferenceClickListener(pref -> {
                 runConnectionTest();
@@ -71,23 +75,63 @@ public final class AiSettingsFragment extends SubScreenFragment {
         updateAllSummaries();
     }
 
+    private void setupPreferenceInterceptors() {
+        final String[] allDependentKeys = {
+            "pref_ai_provider", "pref_ai_system_prompt",
+            "pref_gemini_key", "pref_gemini_model",
+            "pref_ollama_url", "pref_ollama_model",
+            "pref_custom_url", "pref_custom_model", "pref_custom_headers",
+            "pref_ai_temperature", "pref_ai_max_tokens", "pref_ai_skip_params", "pref_ai_test_connection"
+        };
+
+        for (final String key : allDependentKeys) {
+            final Preference pref = findPreference(key);
+            if (pref == null) continue;
+
+            final Preference.OnPreferenceClickListener originalListener = pref.getOnPreferenceClickListener();
+            pref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference p) {
+                    final SharedPreferences prefs = getSharedPreferences();
+                    boolean aiEnabled = prefs.getBoolean(KEY_AI_ENABLED, true);
+                    if (!aiEnabled) {
+                        Toast.makeText(getActivity(), "Please enable AI Copilot first", Toast.LENGTH_SHORT).show();
+                        return true; // Intercept click
+                    }
+
+                    // Check provider-specific constraints
+                    String provider = Settings.readAiProvider(prefs);
+                    if (key.startsWith("pref_gemini_") && !"gemini".equals(provider)) {
+                        Toast.makeText(getActivity(), "Please set AI Provider to 'Gemini Cloud' first", Toast.LENGTH_SHORT).show();
+                        return true;
+                    }
+                    if (key.startsWith("pref_ollama_") && !"ollama".equals(provider)) {
+                        Toast.makeText(getActivity(), "Please set AI Provider to 'Local Ollama' first", Toast.LENGTH_SHORT).show();
+                        return true;
+                    }
+                    if (key.startsWith("pref_custom_") && !"custom".equals(provider)) {
+                        Toast.makeText(getActivity(), "Please set AI Provider to 'Custom API' first", Toast.LENGTH_SHORT).show();
+                        return true;
+                    }
+
+                    if (originalListener != null) {
+                        return originalListener.onPreferenceClick(p);
+                    }
+                    return false; // Allow opening dialog
+                }
+            });
+        }
+    }
+
     /**
      * Show only the category relevant to the currently selected provider.
-     * E.g. selecting "gemini" hides Ollama and Custom categories.
      */
     private void updateProviderVisibility() {
         final SharedPreferences prefs = getSharedPreferences();
         final String provider = Settings.readAiProvider(prefs);
 
-        final PreferenceCategory catGemini = (PreferenceCategory) findPreference(CAT_GEMINI);
-        final PreferenceCategory catOllama = (PreferenceCategory) findPreference(CAT_OLLAMA);
-        final PreferenceCategory catCustom = (PreferenceCategory) findPreference(CAT_CUSTOM);
-
-        if (catGemini != null) catGemini.setEnabled("gemini".equals(provider));
-        if (catOllama != null) catOllama.setEnabled("ollama".equals(provider));
-        if (catCustom != null) catCustom.setEnabled("custom".equals(provider));
-
-        // Update provider ListPreference summary to show current selection
+        // Keep all categories fully enabled so they are clickable,
+        // but update the ListPreference summary.
         final ListPreference providerPref = (ListPreference) findPreference(Settings.PREF_AI_PROVIDER);
         if (providerPref != null && providerPref.getEntry() != null) {
             providerPref.setSummary(providerPref.getEntry());
@@ -99,8 +143,6 @@ public final class AiSettingsFragment extends SubScreenFragment {
      * This gives users immediate visual feedback of their configuration.
      */
     private void updateAllSummaries() {
-        final SharedPreferences prefs = getSharedPreferences();
-
         // Provider
         updateListSummary(Settings.PREF_AI_PROVIDER);
 

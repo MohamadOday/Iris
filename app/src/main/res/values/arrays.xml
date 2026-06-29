@@ -102,4 +102,39 @@
         <item>ollama</item>
         <item>custom</item>
     </string-array>
+
+    <string-array name="key_shape_entries">
+        <item>Default</item>
+        <item>Circle</item>
+        <item>Squircle</item>
+        <item>Hexagon</item>
+        <item>Square</item>
+        <item>Rounded Rectangle</item>
+    </string-array>
+    <string-array name="key_shape_values">
+        <item>default</item>
+        <item>circle</item>
+        <item>squircle</item>
+        <item>hexagon</item>
+        <item>square</item>
+        <item>rounded</item>
+    </string-array>
+
+    <string-array name="key_size_mode_entries">
+        <item>Uniform Scale</item>
+        <item>Custom Width &amp; Height</item>
+    </string-array>
+    <string-array name="key_size_mode_values">
+        <item>uniform</item>
+        <item>custom</item>
+    </string-array>
+
+    <string-array name="kbd_bg_style_entries">
+        <item>Stretch to Fill</item>
+        <item>Cut to Fill (Crop)</item>
+    </string-array>
+    <string-array name="kbd_bg_style_values">
+        <item>stretch</item>
+        <item>crop</item>
+    </string-array>
 </resources>

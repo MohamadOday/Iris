@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2026 Latin IME Customizer -->
+
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:latin="http://schemas.android.com/apk/res-auto"
+    android:key="screen_personalization"
+    android:title="Personalization">
+
+    <PreferenceCategory android:title="Key Shape Customization">
+        <ListPreference
+            android:key="pref_key_shape"
+            android:title="Key Shape"
+            android:summary="Choose the geometric shape of the keyboard keys"
+            android:entries="@array/key_shape_entries"
+            android:entryValues="@array/key_shape_values"
+            android:defaultValue="default" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="Key Size Options">
+        <ListPreference
+            android:key="pref_key_size_mode"
+            android:title="Key Size Mode"
+            android:summary="Choose whether to scale keys uniformly or adjust width and height separately"
+            android:entries="@array/key_size_mode_entries"
+            android:entryValues="@array/key_size_mode_values"
+            android:defaultValue="uniform" />
+        <nabu.iris.keyboard.latin.settings.SeekBarDialogPreference
+            android:key="pref_key_size_scale"
+            android:title="Key Size Scale"
+            latin:minValue="70"
+            latin:maxValue="130"
+            latin:stepValue="5" />
+        <nabu.iris.keyboard.latin.settings.SeekBarDialogPreference
+            android:key="pref_key_width_scale"
+            android:title="Key Width Scale"
+            latin:minValue="70"
+            latin:maxValue="130"
+            latin:stepValue="5" />
+        <nabu.iris.keyboard.latin.settings.SeekBarDialogPreference
+            android:key="pref_key_height_scale"
+            android:title="Key Height Scale"
+            latin:minValue="70"
+            latin:maxValue="130"
+            latin:stepValue="5" />
+        <Preference
+            android:key="pref_reset_key_size"
+            android:title="Reset Key Size Scale"
+            android:summary="Reset key size mode and scale values back to 100%" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="Key Spacing Options">
+        <nabu.iris.keyboard.latin.settings.SeekBarDialogPreference
+            android:key="pref_key_gap_x"
+            android:title="Horizontal Key Gap"
+            latin:minValue="0"
+            latin:maxValue="10"
+            latin:stepValue="1" />
+        <nabu.iris.keyboard.latin.settings.SeekBarDialogPreference
+            android:key="pref_key_gap_y"
+            android:title="Vertical Key Gap"
+            latin:minValue="0"
+            latin:maxValue="10"
+            latin:stepValue="1" />
+        <Preference
+            android:key="pref_reset_key_gap"
+            android:title="Reset Key Spacing"
+            android:summary="Reset horizontal gap to 2dp and vertical gap to 3dp" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="Custom Key Background Image">
+        <Preference
+            android:key="pref_select_key_bg_image"
+            android:title="Select Key Background Image"
+            android:summary="Choose a small image to apply as key backgrounds. Recommended size: 128x128 px (max 256x256 px) to keep memory usage low." />
+        <Preference
+            android:key="pref_clear_key_bg_image"
+            android:title="Clear Key Background Image"
+            android:summary="Revert to standard keyboard key background" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="Custom Keyboard Background Image">
+        <Preference
+            android:key="pref_select_kbd_bg_image"
+            android:title="Select Keyboard Background Image"
+            android:summary="Choose an image for the entire keyboard background. Recommended max dimension: 512 px." />
+        <ListPreference
+            android:key="pref_kbd_bg_image_style"
+            android:title="Image Style"
+            android:summary="Choose whether to stretch or cut (crop) the image to fill the background"
+            android:entries="@array/kbd_bg_style_entries"
+            android:entryValues="@array/kbd_bg_style_values"
+            android:defaultValue="stretch" />
+        <Preference
+            android:key="pref_clear_kbd_bg_image"
+            android:title="Clear Keyboard Background Image"
+            android:summary="Revert to standard keyboard theme background" />
+    </PreferenceCategory>
+</PreferenceScreen>
