@@ -94,7 +94,6 @@ No more losing text snippets. Iris records your clipboard activity into an organ
 * **Geometric Key Shapes:** Choose the geometric layout shape of key caps, including Circle, Squircle (parametric superellipse), flat-topped Hexagon, Square, and Rounded Rectangle.
 * **Custom Key & Keyboard Backgrounds:** Apply custom background images directly to individual key caps (recommended size: 128x128 px) or to the entire keyboard window (supporting Stretch to Fill vs Cut/Crop to Fill layout styles).
 * **Key Spacing & Sizing Sliders:** Adjust horizontal and vertical gaps between keys (0dp - 10dp) and configure uniform or independent key width/height scaling (70% - 130%) with dedicated reset actions.
-* **Interactive Settings UX:** Toggling options are accompanied by active click interceptors that show guidance Toast notifications instead of unclickable disabled states.
 * **Responsive Sizing:** Seekbars to adjust keyboard height, bottom offset (useful for gesture navigation padding), and key long-press delay.
 
 ### 7. Layouts & Languages
