@@ -809,24 +809,34 @@ public final class ClipboardBarController {
 
     int getKeyboardBackgroundColor() {
         SharedPreferences prefs = PreferenceManagerCompat.getDeviceSharedPreferences(mContext);
-        KeyboardTheme theme = KeyboardTheme.getKeyboardTheme(prefs);
         int customColor = Settings.readKeyboardColor(prefs, mContext);
 
         if (mKeyboardView != null) {
             android.graphics.drawable.Drawable kbBg = mKeyboardView.getBackground();
             if (kbBg instanceof android.graphics.drawable.ColorDrawable) {
                 return ((android.graphics.drawable.ColorDrawable) kbBg).getColor();
+            } else if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q
+                    && kbBg instanceof android.graphics.drawable.ColorStateListDrawable) {
+                android.content.res.ColorStateList csl = ((android.graphics.drawable.ColorStateListDrawable) kbBg).getColorStateList();
+                if (csl != null) {
+                    return csl.getDefaultColor();
+                }
             }
         }
 
+        if (customColor != 0 && customColor != Color.TRANSPARENT) {
+            return customColor;
+        }
+
+        int defaultColor = Settings.readKeyboardDefaultColor(mContext);
+        if (defaultColor != 0 && defaultColor != Color.TRANSPARENT) {
+            return defaultColor;
+        }
+
         int backgroundColor = 0xFF121212;
-        if (theme.mCustomColorSupport && customColor != 0) {
-            backgroundColor = customColor;
-        } else {
-            TypedValue typedValue = new TypedValue();
-            if (mContext.getTheme().resolveAttribute(android.R.attr.colorBackground, typedValue, true)) {
-                backgroundColor = typedValue.data;
-            }
+        TypedValue typedValue = new TypedValue();
+        if (mContext.getTheme().resolveAttribute(android.R.attr.colorBackground, typedValue, true)) {
+            backgroundColor = typedValue.data;
         }
         return backgroundColor;
     }

@@ -4,7 +4,7 @@ set -e
 
 # Configuration
 RISH="$HOME/shizuku/rish"
-APK_PATH="app/build/outputs/apk/debug/app-debug.apk"
+APK_PATH="app/build/outputs/apk/nomlkit/debug/app-nomlkit-debug.apk"
 TEMP_DEVICE_APK="/data/local/tmp/iris-keyboard-debug.apk"
 PACKAGE_NAME="nabu.iris.keyboard"
 LAUNCH_ACTIVITY="nabu.iris.keyboard.latin.settings.SettingsActivity"
@@ -22,7 +22,7 @@ fi
 
 # 2. Run Gradle Build
 echo "[*] Step 1: Compiling application..."
-bash gradlew assembleDebug
+bash gradlew assembleNomlkitDebug
 
 if [ ! -f "$APK_PATH" ]; then
     echo "[!] Compiled APK not found at $APK_PATH"
