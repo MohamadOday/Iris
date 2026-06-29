@@ -87,10 +87,14 @@ No more losing text snippets. Iris records your clipboard activity into an organ
 * **Multi-Engine GIF Search:** Search Tenor, GIPHY, or Klipy directly from the keyboard. Bring your own developer key for GIPHY/Klipy, and toggle between normal and high-quality previews.
 * **Custom Emoji Panel:** Define your own quick-access emoji strip using a comma-separated list in Settings.
 
-### 6. Customization & Themes
+### 6. Personalization, Customization & Themes
 * **6 Built-in Themes:** Material Light, Material Dark, System Default (with or without key borders).
 * **AMOLED Black Mode:** Save battery with true-black backdrops on OLED screens.
 * **Custom Hex Color Picker:** Customize key caps, backgrounds, and the toolbar.
+* **Geometric Key Shapes:** Choose the geometric layout shape of key caps, including Circle, Squircle (parametric superellipse), flat-topped Hexagon, Square, and Rounded Rectangle.
+* **Custom Key & Keyboard Backgrounds:** Apply custom background images directly to individual key caps (recommended size: 128x128 px) or to the entire keyboard window (supporting Stretch to Fill vs Cut/Crop to Fill layout styles).
+* **Key Spacing & Sizing Sliders:** Adjust horizontal and vertical gaps between keys (0dp - 10dp) and configure uniform or independent key width/height scaling (70% - 130%) with dedicated reset actions.
+* **Interactive Settings UX:** Toggling options are accompanied by active click interceptors that show guidance Toast notifications instead of unclickable disabled states.
 * **Responsive Sizing:** Seekbars to adjust keyboard height, bottom offset (useful for gesture navigation padding), and key long-press delay.
 
 ### 7. Layouts & Languages
