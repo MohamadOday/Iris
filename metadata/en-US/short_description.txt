@@ -1,1 +1,1 @@
-An app for those who only need a keyboard and nothing more
+Advanced FOSS keyboard with AI Copilot, translation, and key sound synthesis
