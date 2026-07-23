@@ -25,7 +25,6 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/english_ime_name"
         android:supportsRtl="true"
-        android:largeHeap="true"
         android:usesCleartextTraffic="true">
 
         <service

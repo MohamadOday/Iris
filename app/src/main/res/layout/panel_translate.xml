@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dedicated Translation Panel -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/translate_panel"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:visibility="gone"
+    android:padding="8dp">
+
+    <!-- Translate Header Row (Languages and Mode selection) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="36dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="6dp">
+
+        <TextView
+            android:id="@+id/translate_source_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="Auto-detect"
+            android:textColor="?android:attr/textColorPrimary"
+            android:textSize="12sp"
+            android:gravity="center"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:background="?android:attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <TextView
+            android:id="@+id/translate_arrow"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text=" → "
+            android:textColor="#88FFFFFF"
+            android:textSize="12sp"
+            android:gravity="center" />
+
+        <TextView
+            android:id="@+id/translate_target_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="Spanish"
+            android:textColor="?android:attr/textColorPrimary"
+            android:textSize="12sp"
+            android:gravity="center"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:background="?android:attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <!-- Weight spacer to push mode selector to the right -->
+        <View
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1" />
+
+        <TextView
+            android:id="@+id/translate_mode_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="Mode: Scraping"
+            android:textColor="?attr/functionalTextColor"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:background="?android:attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true" />
+
+    </LinearLayout>
+
+    <!-- Download/Translation Progress Bar -->
+    <TextView
+        android:id="@+id/translate_download_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:textSize="11sp"
+        android:textColor="#AAFFFFFF"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:visibility="gone"
+        android:layout_marginBottom="2dp" />
+
+    <ProgressBar
+        android:id="@+id/translate_progress_bar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="4dp"
+        android:indeterminate="false"
+        android:max="100"
+        android:progress="0"
+        android:visibility="gone"
+        android:layout_marginBottom="4dp" />
+
+    <!-- Translate Input Row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="42dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="6dp">
+
+        <EditText
+            android:id="@+id/translate_input"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:hint="Type to translate..."
+            android:textColorHint="#66FFFFFF"
+            android:textColor="?android:attr/textColorPrimary"
+            android:textSize="13sp"
+            android:singleLine="true"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:background="@null"
+            android:inputType="textNoSuggestions"
+            android:cursorVisible="true"
+            android:textDirection="anyRtl"
+            android:textAlignment="viewStart" />
+
+        <TextView
+            android:id="@+id/translate_clear_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="CLEAR"
+            android:textColor="#FF7C4DFF"
+            android:textSize="10.5sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:clickable="true"
+            android:focusable="true" />
+    </LinearLayout>
+
+    <!-- Result Row (Preview & Insert Action) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="42dp"
+        android:orientation="horizontal"
+        android:gravity="top">
+
+        <TextView
+            android:id="@+id/translate_result_preview"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text=""
+            android:textColor="#AAFFFFFF"
+            android:textSize="13sp"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:maxLines="4"
+            android:ellipsize="end"
+            android:textDirection="anyRtl"
+            android:textAlignment="viewStart" />
+
+        <TextView
+            android:id="@+id/translate_insert_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="42dp"
+            android:text="INSERT"
+            android:textColor="#FF00E676"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:background="?android:attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
+            android:visibility="gone" />
+    </LinearLayout>
+</LinearLayout>

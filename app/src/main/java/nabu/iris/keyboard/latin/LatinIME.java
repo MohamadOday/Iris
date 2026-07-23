@@ -324,7 +324,7 @@ public class LatinIME extends InputMethodService implements KeyboardActionListen
     @Override
     public void onTrimMemory(int level) {
         super.onTrimMemory(level);
-        if (level >= TRIM_MEMORY_COMPLETE || level == TRIM_MEMORY_UI_HIDDEN) {
+        if (level >= TRIM_MEMORY_MODERATE || level == TRIM_MEMORY_UI_HIDDEN) {
             nabu.iris.keyboard.keyboard.KeyboardLayoutSet.clearKeyboardLayoutSetCache();
             if (mClipboardBarController != null) {
                 mClipboardBarController.clearGifCache();

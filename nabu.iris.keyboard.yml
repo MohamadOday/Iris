@@ -1,0 +1,30 @@
+Categories:
+  - System
+  - Writing
+License: Apache-2.0
+AuthorName: Mohamad Oday
+AuthorWebSite: https://bn3di.is-a.dev
+WebSite: https://bn3di.is-a.dev
+SourceCode: https://github.com/MohamadOday/Iris
+IssueTracker: https://github.com/MohamadOday/Iris/issues
+
+AutoName: Iris
+
+RepoType: git
+Repo: https://github.com/MohamadOday/Iris.git
+
+Builds:
+  - versionName: 6.4.5
+    versionCode: 150
+    commit: 4cb7d5b5b61bf1d5db630e0c2d53fe81223b9a24
+    subdir: app
+    gradle:
+      - nomlkit
+    prebuild:
+      - sed -i '/plugins/,/}/d' ../settings.gradle
+      - sed -i '/aapt2FromMavenOverride/d' ../gradle.properties
+
+AutoUpdateMode: Version
+UpdateCheckMode: Tags
+CurrentVersion: 6.4.5
+CurrentVersionCode: 150

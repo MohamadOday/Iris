@@ -131,6 +131,9 @@ public class KeyboardView extends View {
     private final Canvas mOffscreenCanvas = new Canvas();
     private final Paint mPaint = new Paint();
     private final Paint.FontMetrics mFontMetrics = new Paint.FontMetrics();
+    private final Paint mKeyFillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint mKeyStrokePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint mKeyOverlayPaint = new Paint();
 
     public KeyboardView(final Context context, final AttributeSet attrs) {
         this(context, attrs, R.attr.keyboardViewStyle);
@@ -269,7 +272,7 @@ public class KeyboardView extends View {
             return false;
         }
         freeOffscreenBuffer();
-        mOffscreenBuffer = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        mOffscreenBuffer = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
         return true;
     }
 
@@ -500,33 +503,30 @@ public class KeyboardView extends View {
             }
         }
 
-        Paint fillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        fillPaint.setStyle(Paint.Style.FILL);
+        mKeyFillPaint.setStyle(Paint.Style.FILL);
         if (key.isPressed()) {
-            fillPaint.setColor(mKeyPressedColor);
+            mKeyFillPaint.setColor(mKeyPressedColor);
         } else {
-            fillPaint.setColor(mKeyNormalColor);
+            mKeyFillPaint.setColor(mKeyNormalColor);
         }
-        canvas.drawPath(path, fillPaint);
+        canvas.drawPath(path, mKeyFillPaint);
 
         if (mKeyBgImageActive && mCustomKeyBgBitmap != null) {
             canvas.save();
             canvas.clipPath(path);
             canvas.drawBitmap(mCustomKeyBgBitmap, null, new android.graphics.RectF(left, top, right, bottom), null);
             if (key.isPressed()) {
-                Paint overlayPaint = new Paint();
-                overlayPaint.setColor(0x40000000);
-                canvas.drawRect(left, top, right, bottom, overlayPaint);
+                mKeyOverlayPaint.setColor(0x40000000);
+                canvas.drawRect(left, top, right, bottom, mKeyOverlayPaint);
             }
             canvas.restore();
         }
 
-        Paint strokePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        strokePaint.setStyle(Paint.Style.STROKE);
-        strokePaint.setStrokeWidth(1.0f * density);
+        mKeyStrokePaint.setStyle(Paint.Style.STROKE);
+        mKeyStrokePaint.setStrokeWidth(1.0f * density);
         boolean isDarkTheme = isColorDark(mKeyNormalColor);
-        strokePaint.setColor(isDarkTheme ? 0x1AFFFFFF : 0x12000000);
-        canvas.drawPath(path, strokePaint);
+        mKeyStrokePaint.setColor(isDarkTheme ? 0x1AFFFFFF : 0x12000000);
+        canvas.drawPath(path, mKeyStrokePaint);
     }
 
     // Draw key top visuals.

@@ -1,0 +1,6 @@
+- Massive memory optimization overhaul (idle RAM reduced from ~170MB to ~40-60MB).
+- Converted feature panels (Clipboard, AI Copilot, Emoji, GIF, Translate, AI Config) to ViewStubs for lazy inflation.
+- Removed largeHeap flag to enable proper Android system GC cycles.
+- Optimized offscreen rendering canvas buffer to RGB_565.
+- Eliminated Paint object allocations inside keyboard draw loops.
+- Consolidated background thread pools and bounded AI chat history.

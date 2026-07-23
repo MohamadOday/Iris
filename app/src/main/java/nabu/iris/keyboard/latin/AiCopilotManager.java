@@ -29,9 +29,14 @@ import nabu.iris.keyboard.latin.settings.Settings;
  */
 public final class AiCopilotManager {
     private static final String TAG = "AiCopilotManager";
-    private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
+    private static final ExecutorService sExecutor = Executors.newSingleThreadExecutor();
+    private static final int MAX_CHAT_HISTORY = 20;
     private final Handler mMainHandler = new Handler(Looper.getMainLooper());
     private final Context mContext;
+
+    public static ExecutorService getSharedExecutor() {
+        return sExecutor;
+    }
 
     public static class ChatMessage {
         public final String role;
@@ -69,7 +74,7 @@ public final class AiCopilotManager {
     }
 
     public void queryAiWithProvider(final String targetProvider, final String prompt, final AiCallback callback) {
-        mExecutor.execute(() -> {
+        sExecutor.execute(() -> {
             SharedPreferences prefs = PreferenceManagerCompat.getDeviceSharedPreferences(mContext);
             String provider = targetProvider;
             if (provider == null || "active".equals(provider)) {
@@ -341,7 +346,7 @@ public final class AiCopilotManager {
     }
 
     public void queryChat(final String prompt, final AiCallback callback) {
-        mExecutor.execute(() -> {
+        sExecutor.execute(() -> {
             SharedPreferences prefs = PreferenceManagerCompat.getDeviceSharedPreferences(mContext);
             String provider = Settings.readAiProvider(prefs);
             String systemPrompt = Settings.readAiSystemPrompt(prefs);
@@ -351,6 +356,9 @@ public final class AiCopilotManager {
 
             synchronized (mChatHistory) {
                 mChatHistory.add(new ChatMessage("user", prompt));
+                while (mChatHistory.size() > MAX_CHAT_HISTORY) {
+                    mChatHistory.remove(0);
+                }
             }
 
             AiCallback wrappedCallback = new AiCallback() {

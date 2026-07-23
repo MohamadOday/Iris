@@ -16,7 +16,7 @@
 #   public *;
 #}
 
--keep class nabu.iris.keyboard.R
+# -keep class nabu.iris.keyboard.R
 -keep class nabu.iris.keyboard.latin.settings.SettingsFragment
 -keep class nabu.iris.keyboard.latin.settings.LanguagesSettingsFragment
 -keep class nabu.iris.keyboard.latin.settings.SingleLanguageSettingsFragment

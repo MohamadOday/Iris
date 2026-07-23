@@ -49,7 +49,7 @@ public final class GifPanelHelper {
     private final LinearLayout mGifItemsContainer;
     private final ScrollView mGifScrollView;
 
-    private final LruCache<String, byte[]> mGifCache = new LruCache<String, byte[]>(3 * 1024 * 1024) {
+    private final LruCache<String, byte[]> mGifCache = new LruCache<String, byte[]>(1536 * 1024) {
         @Override
         protected int sizeOf(String key, byte[] value) {
             return value != null ? value.length : 0;

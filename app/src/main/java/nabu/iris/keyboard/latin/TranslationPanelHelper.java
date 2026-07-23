@@ -60,13 +60,11 @@ public final class TranslationPanelHelper {
 
     private final Handler mTranslateHandler = new Handler(Looper.getMainLooper());
     private Runnable mTranslateRunnable;
-    private final ExecutorService mTranslationExecutor = Executors.newSingleThreadExecutor();
 
-    
-    private final String[] mLangNames = {"Auto-detect", "English", "Spanish", "French", "German", "Italian", "Portuguese", "Chinese", "Japanese", "Korean", "Russian", "Arabic", "Hindi", "Turkish", "Polish", "Dutch"};
-    private final String[] mLangCodes = {"auto", "en", "es", "fr", "de", "it", "pt", "zh", "ja", "ko", "ru", "ar", "hi", "tr", "pl", "nl"};
-    private final String[] mTgtLangNames = {"English", "Spanish", "French", "German", "Italian", "Portuguese", "Chinese", "Japanese", "Korean", "Russian", "Arabic", "Hindi", "Turkish", "Polish", "Dutch"};
-    private final String[] mTgtLangCodes = {"en", "es", "fr", "de", "it", "pt", "zh", "ja", "ko", "ru", "ar", "hi", "tr", "pl", "nl"};
+    private static final String[] mLangNames = {"Auto-detect", "English", "Spanish", "French", "German", "Italian", "Portuguese", "Chinese", "Japanese", "Korean", "Russian", "Arabic", "Hindi", "Turkish", "Polish", "Dutch"};
+    private static final String[] mLangCodes = {"auto", "en", "es", "fr", "de", "it", "pt", "zh", "ja", "ko", "ru", "ar", "hi", "tr", "pl", "nl"};
+    private static final String[] mTgtLangNames = {"English", "Spanish", "French", "German", "Italian", "Portuguese", "Chinese", "Japanese", "Korean", "Russian", "Arabic", "Hindi", "Turkish", "Polish", "Dutch"};
+    private static final String[] mTgtLangCodes = {"en", "es", "fr", "de", "it", "pt", "zh", "ja", "ko", "ru", "ar", "hi", "tr", "pl", "nl"};
 
     public TranslationPanelHelper(ClipboardBarController controller, View inputView) {
         mController = controller;
@@ -233,7 +231,7 @@ public final class TranslationPanelHelper {
     }
 
     private void translateViaScraping(final String text) {
-        mTranslationExecutor.execute(() -> {
+        AiCopilotManager.getSharedExecutor().execute(() -> {
             HttpURLConnection conn = null;
             try {
                 String encodedText = URLEncoder.encode(text, "UTF-8");
@@ -573,10 +571,5 @@ public final class TranslationPanelHelper {
             mTranslateHandler.removeCallbacks(mTranslateRunnable);
         }
         releaseActiveTranslator();
-        try {
-            mTranslationExecutor.shutdown();
-        } catch (Exception e) {
-            // Ignore
-        }
     }
 }

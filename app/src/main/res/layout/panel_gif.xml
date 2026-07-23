@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dedicated GIF Search Panel -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/gif_panel"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:visibility="gone"
+    android:padding="8dp">
+
+    <!-- Search Header Row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="36dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="6dp">
+
+        <EditText
+            android:id="@+id/gif_search_input"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:hint="Search GIFs..."
+            android:textColorHint="#66FFFFFF"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:singleLine="true"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:background="@null"
+            android:inputType="textNoSuggestions"
+            android:cursorVisible="true" />
+
+        <TextView
+            android:id="@+id/gif_clear_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="CLEAR"
+            android:textColor="#FF7C4DFF"
+            android:textSize="10.5sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:clickable="true"
+            android:focusable="true" />
+    </LinearLayout>
+
+    <!-- Grid or List of GIFs -->
+    <ScrollView
+        android:id="@+id/gif_scroll_view"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:scrollbars="vertical"
+        android:fillViewport="true">
+        <LinearLayout
+            android:id="@+id/gif_items_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+    </ScrollView>
+</LinearLayout>

@@ -38,14 +38,25 @@ public final class ClipboardBarController {
     private final AiCopilotManager mAiManager;
 
     // View References
+    private final View mInputView;
     private final View mKeyboardView;
     private final LinearLayout mUtilityToolbar;
-    private final LinearLayout mClipboardPanel;
-    private final LinearLayout mAiPanel;
-    private final LinearLayout mAiSettingsPanel;
-    private final View mEmojiPanel;
-    private final View mGifPanel;
-    private final LinearLayout mTranslatePanel;
+
+    // ViewStubs for lazy inflation
+    private android.view.ViewStub mClipboardStub;
+    private android.view.ViewStub mAiStub;
+    private android.view.ViewStub mAiSettingsStub;
+    private android.view.ViewStub mEmojiStub;
+    private android.view.ViewStub mGifStub;
+    private android.view.ViewStub mTranslateStub;
+
+    // Dynamically inflated panels
+    private LinearLayout mClipboardPanel;
+    private LinearLayout mAiPanel;
+    private LinearLayout mAiSettingsPanel;
+    private View mEmojiPanel;
+    private View mGifPanel;
+    private LinearLayout mTranslatePanel;
 
     // Toolbar Buttons (ImageView Vectors)
     private final ImageView mTbKeysBtn;
@@ -57,16 +68,16 @@ public final class ClipboardBarController {
     private final ImageView mTbSettingsBtn;
     
     // In-console AI config trigger (tune icon inside AI panel header)
-    private final ImageView mAiOpenSettingsBtn;
+    private ImageView mAiOpenSettingsBtn;
 
-    // Sub-panel helpers
+    // Sub-panel helpers (Lazy loaded)
     private final ClipboardSuggestionHelper mSuggestionHelper;
-    private final ClipboardPanelHelper mClipboardPanelHelper;
-    private final AiPanelHelper mAiPanelHelper;
-    private final AiSettingsHelper mAiSettingsHelper;
-    private final EmojiPanelHelper mEmojiPanelHelper;
-    private final GifPanelHelper mGifPanelHelper;
-    private final TranslationPanelHelper mTranslationPanelHelper;
+    private ClipboardPanelHelper mClipboardPanelHelper;
+    private AiPanelHelper mAiPanelHelper;
+    private AiSettingsHelper mAiSettingsHelper;
+    private EmojiPanelHelper mEmojiPanelHelper;
+    private GifPanelHelper mGifPanelHelper;
+    private TranslationPanelHelper mTranslationPanelHelper;
 
     private EditText mActiveInput = null;
 
@@ -76,6 +87,7 @@ public final class ClipboardBarController {
 
     public ClipboardBarController(Context context, View inputView, ClipboardHistoryManager manager, OnItemClickListener listener) {
         mContext = context;
+        mInputView = inputView;
         mManager = manager;
         mListener = listener;
 
@@ -85,12 +97,14 @@ public final class ClipboardBarController {
         // Resolve Layout Elements
         mKeyboardView = inputView.findViewById(R.id.keyboard_view);
         mUtilityToolbar = inputView.findViewById(R.id.utility_toolbar);
-        mClipboardPanel = inputView.findViewById(R.id.clipboard_panel);
-        mAiPanel = inputView.findViewById(R.id.ai_panel);
-        mAiSettingsPanel = inputView.findViewById(R.id.ai_settings_panel);
-        mEmojiPanel = inputView.findViewById(R.id.emoji_panel);
-        mGifPanel = inputView.findViewById(R.id.gif_panel);
-        mTranslatePanel = inputView.findViewById(R.id.translate_panel);
+
+        // Resolve ViewStubs for lazy panel inflation
+        mClipboardStub = inputView.findViewById(R.id.clipboard_panel_stub);
+        mAiStub = inputView.findViewById(R.id.ai_panel_stub);
+        mAiSettingsStub = inputView.findViewById(R.id.ai_settings_panel_stub);
+        mEmojiStub = inputView.findViewById(R.id.emoji_panel_stub);
+        mGifStub = inputView.findViewById(R.id.gif_panel_stub);
+        mTranslateStub = inputView.findViewById(R.id.translate_panel_stub);
 
         // Resolve Toolbar Button Views
         mTbKeysBtn = inputView.findViewById(R.id.tb_keys_btn);
@@ -100,16 +114,9 @@ public final class ClipboardBarController {
         mTbGifBtn = inputView.findViewById(R.id.tb_gif_btn);
         mTbTranslateBtn = inputView.findViewById(R.id.tb_translate_btn);
         mTbSettingsBtn = inputView.findViewById(R.id.tb_settings_btn);
-        mAiOpenSettingsBtn = inputView.findViewById(R.id.ai_open_settings_btn);
 
-        // Initialize helper delegates
+        // Initialize suggestion helper (uses toolbar chip)
         mSuggestionHelper = new ClipboardSuggestionHelper(this, inputView);
-        mClipboardPanelHelper = new ClipboardPanelHelper(this, inputView);
-        mAiPanelHelper = new AiPanelHelper(this, inputView);
-        mAiSettingsHelper = new AiSettingsHelper(this, inputView);
-        mEmojiPanelHelper = new EmojiPanelHelper(this, inputView);
-        mGifPanelHelper = new GifPanelHelper(this, inputView);
-        mTranslationPanelHelper = new TranslationPanelHelper(this, inputView);
 
         // Attach Quick-Access Toolbar Click Actions
         if (mTbKeysBtn != null) {
@@ -117,6 +124,7 @@ public final class ClipboardBarController {
         }
         if (mTbClipboardBtn != null) {
             mTbClipboardBtn.setOnClickListener(v -> {
+                ensureClipboardPanel();
                 if (mClipboardPanel != null && mClipboardPanel.getVisibility() == View.VISIBLE) {
                     showKeyboard();
                 } else {
@@ -126,6 +134,7 @@ public final class ClipboardBarController {
         }
         if (mTbAiBtn != null) {
             mTbAiBtn.setOnClickListener(v -> {
+                ensureAiPanel();
                 if (mAiPanel != null && mAiPanel.getVisibility() == View.VISIBLE) {
                     showKeyboard();
                 } else {
@@ -133,6 +142,7 @@ public final class ClipboardBarController {
                 }
             });
             mTbAiBtn.setOnLongClickListener(v -> {
+                ensureAiPanel();
                 if (mAiPanelHelper != null) {
                     mAiPanelHelper.performAutoGrammarCorrection();
                 }
@@ -141,6 +151,7 @@ public final class ClipboardBarController {
         }
         if (mTbEmojiBtn != null) {
             mTbEmojiBtn.setOnClickListener(v -> {
+                ensureEmojiPanel();
                 if (mEmojiPanel != null && mEmojiPanel.getVisibility() == View.VISIBLE) {
                     showKeyboard();
                 } else {
@@ -150,6 +161,7 @@ public final class ClipboardBarController {
         }
         if (mTbGifBtn != null) {
             mTbGifBtn.setOnClickListener(v -> {
+                ensureGifPanel();
                 if (mGifPanel != null && mGifPanel.getVisibility() == View.VISIBLE) {
                     showKeyboard();
                 } else {
@@ -162,6 +174,7 @@ public final class ClipboardBarController {
         }
         if (mTbTranslateBtn != null) {
             mTbTranslateBtn.setOnClickListener(v -> {
+                ensureTranslatePanel();
                 if (mTranslatePanel != null && mTranslatePanel.getVisibility() == View.VISIBLE) {
                     showKeyboard();
                 } else {
@@ -169,12 +182,103 @@ public final class ClipboardBarController {
                 }
             });
         }
-        if (mAiOpenSettingsBtn != null) {
-            mAiOpenSettingsBtn.setOnClickListener(v -> showAiSettings());
-        }
 
         updateToolbarLayout();
         showKeyboard();
+    }
+
+    public LinearLayout ensureClipboardPanel() {
+        if (mClipboardPanel == null) {
+            if (mClipboardStub != null) {
+                mClipboardPanel = (LinearLayout) mClipboardStub.inflate();
+                mClipboardStub = null;
+            } else {
+                mClipboardPanel = mInputView.findViewById(R.id.clipboard_panel);
+            }
+            if (mClipboardPanel != null && mClipboardPanelHelper == null) {
+                mClipboardPanelHelper = new ClipboardPanelHelper(this, mInputView);
+            }
+        }
+        return mClipboardPanel;
+    }
+
+    public LinearLayout ensureAiPanel() {
+        if (mAiPanel == null) {
+            if (mAiStub != null) {
+                mAiPanel = (LinearLayout) mAiStub.inflate();
+                mAiStub = null;
+            } else {
+                mAiPanel = mInputView.findViewById(R.id.ai_panel);
+            }
+            if (mAiPanel != null && mAiPanelHelper == null) {
+                mAiPanelHelper = new AiPanelHelper(this, mInputView);
+                mAiOpenSettingsBtn = mInputView.findViewById(R.id.ai_open_settings_btn);
+                if (mAiOpenSettingsBtn != null) {
+                    mAiOpenSettingsBtn.setOnClickListener(v -> showAiSettings());
+                }
+            }
+        }
+        return mAiPanel;
+    }
+
+    public LinearLayout ensureAiSettingsPanel() {
+        if (mAiSettingsPanel == null) {
+            if (mAiSettingsStub != null) {
+                mAiSettingsPanel = (LinearLayout) mAiSettingsStub.inflate();
+                mAiSettingsStub = null;
+            } else {
+                mAiSettingsPanel = mInputView.findViewById(R.id.ai_settings_panel);
+            }
+            if (mAiSettingsPanel != null && mAiSettingsHelper == null) {
+                mAiSettingsHelper = new AiSettingsHelper(this, mInputView);
+            }
+        }
+        return mAiSettingsPanel;
+    }
+
+    public View ensureEmojiPanel() {
+        if (mEmojiPanel == null) {
+            if (mEmojiStub != null) {
+                mEmojiPanel = mEmojiStub.inflate();
+                mEmojiStub = null;
+            } else {
+                mEmojiPanel = mInputView.findViewById(R.id.emoji_panel);
+            }
+            if (mEmojiPanel != null && mEmojiPanelHelper == null) {
+                mEmojiPanelHelper = new EmojiPanelHelper(this, mInputView);
+            }
+        }
+        return mEmojiPanel;
+    }
+
+    public View ensureGifPanel() {
+        if (mGifPanel == null) {
+            if (mGifStub != null) {
+                mGifPanel = mGifStub.inflate();
+                mGifStub = null;
+            } else {
+                mGifPanel = mInputView.findViewById(R.id.gif_panel);
+            }
+            if (mGifPanel != null && mGifPanelHelper == null) {
+                mGifPanelHelper = new GifPanelHelper(this, mInputView);
+            }
+        }
+        return mGifPanel;
+    }
+
+    public LinearLayout ensureTranslatePanel() {
+        if (mTranslatePanel == null) {
+            if (mTranslateStub != null) {
+                mTranslatePanel = (LinearLayout) mTranslateStub.inflate();
+                mTranslateStub = null;
+            } else {
+                mTranslatePanel = mInputView.findViewById(R.id.translate_panel);
+            }
+            if (mTranslatePanel != null && mTranslationPanelHelper == null) {
+                mTranslationPanelHelper = new TranslationPanelHelper(this, mInputView);
+            }
+        }
+        return mTranslatePanel;
     }
 
     // Accessors for helper delegates
@@ -254,6 +358,7 @@ public final class ClipboardBarController {
     }
 
     public void showClipboard() {
+        ensureClipboardPanel();
         if (mTranslationPanelHelper != null) mTranslationPanelHelper.hideTranslatePanel();
         hideClipboardSuggestion();
         if (mClipboardPanel != null && mKeyboardView != null) {
@@ -275,6 +380,7 @@ public final class ClipboardBarController {
     }
 
     public void showAiCopilot() {
+        ensureAiPanel();
         if (mTranslationPanelHelper != null) mTranslationPanelHelper.hideTranslatePanel();
         hideClipboardSuggestion();
         if (mAiPanel != null && mKeyboardView != null) {
@@ -297,6 +403,7 @@ public final class ClipboardBarController {
     }
 
     public void showAiSettings() {
+        ensureAiSettingsPanel();
         if (mTranslationPanelHelper != null) mTranslationPanelHelper.hideTranslatePanel();
         hideClipboardSuggestion();
         if (mAiSettingsPanel != null && mKeyboardView != null) {
@@ -320,6 +427,7 @@ public final class ClipboardBarController {
     }
 
     public void showEmojiPanel() {
+        ensureEmojiPanel();
         if (mTranslationPanelHelper != null) mTranslationPanelHelper.hideTranslatePanel();
         hideClipboardSuggestion();
         if (mEmojiPanel != null && mKeyboardView != null) {
@@ -343,6 +451,7 @@ public final class ClipboardBarController {
     }
 
     public void showTranslatePanel() {
+        ensureTranslatePanel();
         hideClipboardSuggestion();
         if (mTranslatePanel != null && mKeyboardView != null) {
             applyTheming();
@@ -364,6 +473,7 @@ public final class ClipboardBarController {
     }
 
     public void showGifPanel() {
+        ensureGifPanel();
         if (mTranslationPanelHelper != null) mTranslationPanelHelper.hideTranslatePanel();
         hideClipboardSuggestion();
         if (mGifPanel != null && mKeyboardView != null) {
