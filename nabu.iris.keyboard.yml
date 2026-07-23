@@ -24,7 +24,17 @@ Builds:
       - sed -i '/plugins/,/}/d' ../settings.gradle
       - sed -i '/aapt2FromMavenOverride/d' ../gradle.properties
 
+  - versionName: 6.5.0
+    versionCode: 151
+    commit: v6.5.0
+    subdir: app
+    gradle:
+      - nomlkit
+    prebuild:
+      - sed -i '/plugins/,/}/d' ../settings.gradle
+      - sed -i '/aapt2FromMavenOverride/d' ../gradle.properties
+
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 6.4.5
-CurrentVersionCode: 150
+CurrentVersion: 6.5.0
+CurrentVersionCode: 151
