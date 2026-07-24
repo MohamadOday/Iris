@@ -150,7 +150,7 @@ public final class GifView extends View {
                 mMovie.draw(canvas, 0, 0);
                 canvas.restore();
             }
-            if (isShown() && getWindowVisibility() == VISIBLE) {
+            if (isShown() && getWindowVisibility() == VISIBLE && !mIsPaused) {
                 postInvalidateOnAnimation();
             }
         } else {
@@ -163,21 +163,23 @@ public final class GifView extends View {
         super.onDetachedFromWindow();
         mMovie = null;
         mBytes = null;
+        mCache = null;
+        mUrl = null;
     }
 
     public void pauseAnimation() {
         if (!mIsPaused) {
             mIsPaused = true;
-            mMovie = null;
-            mBytes = null;
-            invalidate();
         }
     }
 
     public void resumeAnimation() {
         if (mIsPaused) {
             mIsPaused = false;
-            if (mUrl != null && mCache != null) {
+            if (mMovie != null) {
+                mMovieStart = 0;
+                invalidate();
+            } else if (mUrl != null && mCache != null) {
                 loadUrl(mUrl, mCache);
             }
         }

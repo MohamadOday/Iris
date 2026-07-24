@@ -555,7 +555,9 @@ public class LatinIME extends InputMethodService implements KeyboardActionListen
         }
         if (mClipboardBarController != null) {
             mClipboardBarController.hide();
+            mClipboardBarController.clearGifCache();
         }
+        System.gc();
     }
 
     public boolean isKeyboardReplacingPanelOpen() {

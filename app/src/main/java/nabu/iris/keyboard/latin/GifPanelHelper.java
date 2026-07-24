@@ -261,6 +261,7 @@ public final class GifPanelHelper {
             if (mGifItemsContainer != null) {
                 mGifItemsContainer.removeAllViews();
             }
+            clearGifCache();
         }
     }
 
@@ -311,6 +312,7 @@ public final class GifPanelHelper {
                     return;
                 }
 
+                final int MAX_VISIBLE_GIFS = 12;
                 int cols = 2;
                 LinearLayout currentRow = null;
                 int addedCount = 0;
@@ -319,6 +321,7 @@ public final class GifPanelHelper {
                 File gifsDir = new File(cacheDir, "gifs");
 
                 for (final GifSearchEngine.GifItem item : results) {
+                    if (addedCount >= MAX_VISIBLE_GIFS) break;
                     if (addedCount % cols == 0) {
                         currentRow = new LinearLayout(mContext);
                         currentRow.setOrientation(LinearLayout.HORIZONTAL);
@@ -506,5 +509,6 @@ public final class GifPanelHelper {
         if (mGifItemsContainer != null) {
             mGifItemsContainer.removeAllViews();
         }
+        clearGifCache();
     }
 }

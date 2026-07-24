@@ -351,6 +351,7 @@ public final class ClipboardBarController {
         if (mAiSettingsPanel != null) mAiSettingsPanel.setVisibility(View.GONE);
         if (mEmojiPanel != null) mEmojiPanel.setVisibility(View.GONE);
         if (mGifPanelHelper != null) mGifPanelHelper.hideGifPanel();
+        clearGifCache();
         setActiveInput(null);
         highlightToolbarTab("keys");
         checkAndShowClipboardSuggestion();
