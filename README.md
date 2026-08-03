@@ -1,150 +1,78 @@
-# Iris Keyboard 🌸
+# Iris Keyboard
 
-[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
-[![Platform](https://img.shields.io/badge/Platform-Android_7.0%2B-green.svg)](#)
-[![Target SDK](https://img.shields.io/badge/Target_SDK-36-orange.svg)](#)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
+[![Android](https://img.shields.io/badge/Android-7.0%2B-green)](https://github.com/MohamadOday/Iris/releases)
+[![Target SDK](https://img.shields.io/badge/target%20SDK-36-orange)](app/build.gradle)
 
-**Iris** is a state-of-the-art, privacy-centric, and feature-rich keyboard for Android. Forked from the minimal AOSP-based *Simple Keyboard*, Iris transforms typing into an advanced workspace by embedding locally run AI models, real-time translation pipelines, a mechanical sound synthesizer, and dynamic clipboard features—all while keeping your privacy completely intact.
+Iris is an Android keyboard based on [Simple Keyboard](https://github.com/rkkr/simple-keyboard). It keeps the small AOSP-style keyboard at its core and adds clipboard history, translation, optional AI tools, GIF search, sound packs, and visual customization.
 
-## 👋 Author's Note & Community
+## Features
 
-This keyboard is my first big Java/Android app project. To maintain openness, I used AI to help me with a lot of stuff, and while the code is tested and reviewed by me personally, there may still be some non-standard practices, bugs, or issues that might appear to you as a no-brainer. But as mentioned, this is my first big open-source project and with the help of the community it can be significantly improved!
+- Clipboard history and recent-clipboard suggestions
+- Offline translation with the optional ML Kit build
+- Online and AI-assisted translation
+- AI actions through Ollama, Gemini, or an OpenAI-compatible endpoint
+- GIF search using Tenor, GIPHY, or Klipy
+- Custom emoji shortcuts
+- Built-in and downloadable keyboard sound packs
+- Light, dark, AMOLED, and custom-color themes
+- Adjustable key size, spacing, keyboard height, and bottom offset
+- More than 55 keyboard layouts and 90 supported locales
+- JSON settings backup and restore
 
-Feel free to connect or send feedback via Telegram: [@bn3di](https://t.me/bn3di).
+Network features are optional. Iris does not include analytics or advertising, but text sent to a translation, GIF, or AI provider is subject to that provider's privacy policy.
 
----
+## Download
 
-## 📖 Table of Contents
+APKs are available on the [Releases page](https://github.com/MohamadOday/Iris/releases). Each release contains two variants:
 
-- [📦 Release Variants (Build Flavors)](#-release-variants-build-flavors)
-- [🤖 Core Features](#-core-features)
-  - [AI Copilot Studio](#1-ai-copilot-studio)
-  - [Translation Suite](#2-translation-suite)
-  - [Synthesized & Custom Soundpacks](#3-synthesized--custom-soundpacks)
-  - [Advanced Clipboard Manager](#4-advanced-clipboard-manager)
-  - [Media & Expression (GIFs & Emojis)](#5-media--expression-gifs--emojis)
-  - [Customization & Themes](#6-customization--themes)
-  - [Layouts & Languages](#7-layouts--languages)
-- [🔒 Privacy & Enterprise Deployment](#-privacy--enterprise-deployment)
-- [⚙️ Building and Development](#%EF%B8%8F-building-and-development)
-- [⚖️ Attribution & Licensing](#%EF%B8%8F-attribution--licensing)
+| Variant | Use it when |
+| --- | --- |
+| `MlKit` | You want downloadable offline translation models and have Google Play services installed. |
+| `NoMlKit` | You want the smaller, fully open-source build without Google ML Kit. Online and AI translation remain available. |
 
----
+After installing the APK, enable Iris under Android's keyboard settings and select it as an input method.
 
-## 📦 Release Variants (Build Flavors)
+## AI and translation setup
 
-To support different user preferences, system configurations, and maintain a fully free-and-open-source (FOSS) version, Iris is distributed in two distinct release variants:
+AI features require a provider configured in Iris settings:
 
-* **Iris-MlKit (Recommended for Offline Translation):**
-  * **What it is:** Includes the **Google ML Kit Offline Translation** engine, which allows you to download offline language translation packs (~30MB+ per language) directly inside the keyboard settings.
-  * ⚠️ **Important:** To download and run the offline translation models, **Google Play Services** must be installed and active on your phone.
-* **Iris-NoMlKit (Fully FOSS & Ultra-Lightweight):**
-  * **What it is:** A fully free-and-open-source version that completely strips out the Google ML Kit library dependencies and proprietary SDK binaries, making it fully compatible with FOSS stores like F-Droid or IzzyOnDroid.
-  * 🚀 **Ultra-Lightweight:** Because all ML Kit dependencies are completely excluded, the download size of this APK is **under 1 MB**!
-  * **Offline Translation Support:** Offline translation is not supported in this version. When selected, it displays a *"Offline translation not supported"* error. Note that all other translation modes (online Web Scraping translation and AI-powered translation) still function perfectly!
+- **Ollama:** connect to an Ollama server on your device or local network.
+- **Gemini:** provide a Gemini API key.
+- **OpenAI-compatible:** provide an endpoint, model, and any required headers.
 
----
+Offline translation is available only in the `MlKit` variant. Translation models are downloaded separately and may use tens of megabytes per language. Online translation and GIF search require an internet connection; some GIF providers require your own API key.
 
-## 🤖 Core Features
+## Building
 
-### 1. AI Copilot Studio
-Iris integrates a fully custom LLM runtime interface directly into your keyboard panel, allowing you to run AI prompts and text transformations in any application without switching contexts.
-* **Three API Backends:**
-  * **Ollama (Local):** Run entirely offline on your local network/device (default: `qwen2.5-coder`).
-  * **Google Gemini:** Direct cloud connection via your Google Gemini API key.
-  * **Custom API (OpenAI-compatible):** Connect to DeepSeek, OpenRouter, OpenAI, or any custom API endpoint with custom request headers.
-* **One-Tap AI Assist Tools:**
-  * 🧠 **Smart Compose:** Expand short thoughts into structured prose.
-  * ✍️ **Simplify:** Condense long sentences for clearer communication.
-  * 📝 **Grammar Fix:** Instantly correct syntax, typos, and style issues.
-  * 💻 **Explain Code:** Parse and explain snippets right from your text input.
-  * 🔧 **Fix Syntax:** Format and clean up code structures.
-* **Inline Controls:** Copy, clear, or directly insert the AI's response into the active text field.
+Requirements:
 
-### 2. Translation Suite
-Translate text instantly using three independent backends:
-* **Offline (ML Kit):** Fully offline translation powered by Google ML Kit. Download model packs (~30MB+ per language) directly inside the app. Easily manage, add, or delete model storage.
-* **Cloud (Google Translate):** Zero-config online translations utilizing light web scraping.
-* **AI Translation:** Use your active AI Copilot provider to translate with custom prompts.
-* **Dual-Language Selectors:** Fast source-to-target language dropdowns directly on the keyboard toolbar.
+- JDK 17
+- Android SDK Platform 36
 
-### 3. Synthesized & Custom Soundpacks
-Iris features a low-level audio engineering layer that makes typing tactile and satisfying.
-* **Procedural PCM Sound Synthesizer:** Real-time generation of realistic key sounds inside `KeySoundSynthesizer.java`, including:
-  * **Cherry MX Blue Switches:** Synthesized tactile bump and bottom-out.
-  * **Retro Typewriter:** Classic mechanical clacks with a carriage-return sound.
-  * **Bubble Wrap:** Delightful pops.
-  * **Sci-Fi Synth Beeps:** Futuristic tones.
-* **High-Fidelity Sampled Packs:** Built-in classic iOS sound effects.
-* **In-App Soundpack Store:** Browse, preview, download, and extract custom mechanical switch soundpacks (ZIP archives) from remote URLs. Powered by a custom `AudioDecoderSlicer` mapping standard, delete, return, and spacebar actions to specific audio frequencies.
+Build a debug APK:
 
-### 4. Advanced Clipboard Manager
-No more losing text snippets. Iris records your clipboard activity into an organized hub.
-* **Clipboard History Panel:** Review and tap past copied texts to paste them instantly.
-* **Suggestion Bar:** Displays your latest copied text as an action chip right above the keyboard for 60 seconds (customizable timeout) for rapid access.
+```sh
+./gradlew assembleMlkitDebug
+./gradlew assembleNomlkitDebug
+```
 
-### 5. Media & Expression (GIFs & Emojis)
-* **Multi-Engine GIF Search:** Search Tenor, GIPHY, or Klipy directly from the keyboard. Bring your own developer key for GIPHY/Klipy, and toggle between normal and high-quality previews.
-* **Custom Emoji Panel:** Define your own quick-access emoji strip using a comma-separated list in Settings.
+Build both release variants:
 
-### 6. Personalization, Customization & Themes
-* **6 Built-in Themes:** Material Light, Material Dark, System Default (with or without key borders).
-* **AMOLED Black Mode:** Save battery with true-black backdrops on OLED screens.
-* **Custom Hex Color Picker:** Customize key caps, backgrounds, and the toolbar.
-* **Geometric Key Shapes:** Choose the geometric layout shape of key caps, including Circle, Squircle (parametric superellipse), flat-topped Hexagon, Square, and Rounded Rectangle.
-* **Custom Key & Keyboard Backgrounds:** Apply custom background images directly to individual key caps (recommended size: 128x128 px) or to the entire keyboard window (supporting Stretch to Fill vs Cut/Crop to Fill layout styles).
-* **Key Spacing & Sizing Sliders:** Adjust horizontal and vertical gaps between keys (0dp - 10dp) and configure uniform or independent key width/height scaling (70% - 130%) with dedicated reset actions.
-* **Responsive Sizing:** Seekbars to adjust keyboard height, bottom offset (useful for gesture navigation padding), and key long-press delay.
-
-### 7. Layouts & Languages
-* **55+ Key Layouts:** Standard (QWERTY, AZERTY, QWERTZ), alternative ergonomic layouts (Dvorak, Colemak, Workman, BEPO, Ergol, PC QWERTY), and localized layouts for international scripts.
-* **90+ Locales Supported:** UI translations available for major languages.
-* **Dedicated Globe Key / Spacebar label:** Quick language toggling and visual indication of active locale.
-
----
-
-## 🔒 Privacy & Enterprise Deployment
-
-* **Zero Spyware, Zero Ads:** Iris does not run tracking, background telemetry, or analytical reporting scripts.
-* **Direct Boot Aware:** Available to decrypt and input passwords immediately after your device powers on, before unlock.
-* **Settings Backup:** Export all configurations to a JSON file for quick restoration.
-* **Enterprise-Ready (MDM):** Supports Android `restrictions` schema (managed configurations) allowing IT administrators to pre-define endpoints, limit GIF access, or lock keyboard profiles across corporate device fleets.
-
----
-
-## ⚙️ Building and Development
-
-Iris is built using modern Android build tooling. It is written in Java and uses a fast, lightweight Gradle compilation setup.
-
-### Prerequisites
-* JDK 17 or later
-* Android SDK Platform 36
-
-### Build Commands
-To compile the APKs on your machine or Termux environment:
-```bash
-# Clean project
-./gradlew clean
-
-# Build a specific variant (Debug)
-./gradlew assembleMlkitDebug    # ML Kit version
-./gradlew assembleNomlkitDebug  # FOSS version
-
-# Build all release APKs (Unsigned/Signed)
+```sh
 ./gradlew assembleRelease
 ```
-The compiled output APKs will be generated under the `app/build/outputs/apk/mlkit/` and `app/build/outputs/apk/nomlkit/` directories.
 
----
+Outputs are written to `app/build/outputs/apk/`. Release builds are unsigned unless signing credentials are supplied to Gradle. Tagged releases are built and signed by the GitHub Actions workflow.
 
-## ⚖️ Attribution & Licensing
+## Contributing
 
-Iris Keyboard is released under the **Apache License 2.0**.
+Bug reports and pull requests are welcome. When reporting a crash, include the Android version, APK variant, steps to reproduce, and the relevant `adb logcat` output when possible.
 
-This project includes and builds upon several open-source works:
-* **Simple Keyboard** (Base) — Licensed under Apache 2.0 (c) rkkr.
-* **Mechvibes** (Audio Assets) — Licensed under the MIT License (c) hainguyents13.
-* **Apple Inc. System Sounds** (Audio Samples) — Derived from MIT-licensed archives.
-* **Google ML Kit SDK** — Integrated for offline translation. Subject to Google APIs and ML Kit Terms of Service.
+For general feedback, contact [@bn3di](https://t.me/bn3di) on Telegram.
 
-For full license texts and attributions, see the accompanying [LICENSE](LICENSE) and [NOTICE](NOTICE) files.
+## License and attribution
+
+Iris is licensed under the [Apache License 2.0](LICENSE). It is based on Simple Keyboard and contains third-party code or assets described in [NOTICE](NOTICE).
+
+The ML Kit variant includes Google ML Kit and is also subject to Google's applicable terms. The NoMlKit variant excludes that dependency.

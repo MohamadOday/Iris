@@ -33,7 +33,9 @@ import nabu.iris.keyboard.latin.common.StringUtils;
   */
 public final class LocaleResourceUtils {
     // This reference class {@link R} must be located in the same package as LatinIME.java.
-    private static final String RESOURCE_PACKAGE_NAME = R.class.getPackage().getName();
+    // Do not derive this from R.class. R8 may move/rename the generated R class
+    // in release builds, in which case Class#getPackage() can return null.
+    private static final String RESOURCE_PACKAGE_NAME = "nabu.iris.keyboard";
 
     private static volatile boolean sInitialized = false;
     private static final Object sInitializeLock = new Object();

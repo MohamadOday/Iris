@@ -1,0 +1,3 @@
+Fix a crash that occurred when opening the GitHub release build.
+
+Refresh the project documentation.
