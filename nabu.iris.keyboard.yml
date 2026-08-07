@@ -26,7 +26,27 @@ Builds:
 
   - versionName: 6.5.0
     versionCode: 151
-    commit: v6.5.0
+    commit: 1b10261bfea860ce600d408f369ae130e60f2eca
+    subdir: app
+    gradle:
+      - nomlkit
+    prebuild:
+      - sed -i '/plugins/,/}/d' ../settings.gradle
+      - sed -i '/aapt2FromMavenOverride/d' ../gradle.properties
+
+  - versionName: 6.5.1
+    versionCode: 152
+    commit: 03dff3ac30afeea43581ddda9cb587e99199da83
+    subdir: app
+    gradle:
+      - nomlkit
+    prebuild:
+      - sed -i '/plugins/,/}/d' ../settings.gradle
+      - sed -i '/aapt2FromMavenOverride/d' ../gradle.properties
+
+  - versionName: 6.5.2
+    versionCode: 153
+    commit: 91bea1295cce1e29b60359acbaed1891f1625b72
     subdir: app
     gradle:
       - nomlkit
@@ -36,5 +56,5 @@ Builds:
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 6.5.0
-CurrentVersionCode: 151
+CurrentVersion: 6.5.2
+CurrentVersionCode: 153
