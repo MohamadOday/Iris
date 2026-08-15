@@ -6,7 +6,11 @@ Iris is a privacy-centric, feature-rich keyboard for Android, built on the light
 * <b>Translation Suite:</b> Translate text instantly using offline Google ML Kit models (requires MlKit flavor), web scraping, or custom AI translations.
 * <b>Synthesized Switch Soundpacks:</b> Low-latency procedural audio engine that generates satisfying typing clacks, including bubble wrap, retro typewriter, Cherry MX switch clicks, or customizable sampled sound packs from remote archives.
 * <b>Advanced Clipboard Manager:</b> Keeps an organized history of your copied texts with a quick paste chip bar.
-* <b>Media & Expression:</b> Complete GIF search engine (Tenor, Giphy) and customizable emoji quick bar.
+* <b>Media & Expression:</b> Complete GIF search engine (Tenor, Giphy, Klipy) and customizable emoji quick bar.
 * <b>Personalization:</b> Choose geometric key cap shapes (Circle, Squircle, Hexagon, Square), adjust key size scales, change horizontal/vertical key gaps, and set custom key or keyboard-wide background images.
 * <b>Built-in Themes & AMOLED Black:</b> High contrast themes with key color customizations and battery-saving true black mode.
 * <b>FOSS & Privacy-First:</b> No trackers, analytics, or background telemetry. Supports Android MDM Managed Configurations for enterprise deployments.
+
+<b>Network Disclosure:</b>
+
+Basic keyboard use works offline. GIF search sends search queries to the provider you select (Tenor, Giphy, or Klipy). Optional cloud AI features send the text you submit to Gemini or a user-configured OpenAI-compatible service. These online features are only used when you invoke them.
