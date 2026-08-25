@@ -25,7 +25,6 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowInsets;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -60,7 +59,6 @@ import nabu.iris.keyboard.R;
 import nabu.iris.keyboard.compat.PreferenceManagerCompat;
 import nabu.iris.keyboard.latin.AudioAndHapticFeedbackManager;
 import nabu.iris.keyboard.latin.AudioDecoderSlicer;
-import nabu.iris.keyboard.latin.settings.SettingsValues;
 
 public class SoundpackDownloadActivity extends Activity {
     private static final String TAG = "SoundpackDownload";
@@ -94,24 +92,24 @@ public class SoundpackDownloadActivity extends Activity {
         void onError(String error);
     }
 
-    private static class SoundpackItem {
-        String id;
-        String name;
-        String downloadUrl;
-        String type;
-        String status = "Available";
-        int progress = 0;
-        boolean isDefault = false;
-        String previewStatus = "PLAY";
+    public static class SoundpackItem {
+        public String id;
+        public String name;
+        public String downloadUrl;
+        public String type;
+        public String status = "Available";
+        public int progress = 0;
+        public boolean isDefault = false;
+        public String previewStatus = "PLAY";
 
-        SoundpackItem(String id, String name, String downloadUrl, String type) {
+        public SoundpackItem(String id, String name, String downloadUrl, String type) {
             this.id = id;
             this.name = name;
             this.downloadUrl = downloadUrl;
             this.type = type;
         }
 
-        SoundpackItem(String id, String name, String downloadUrl, String type, boolean isDefault) {
+        public SoundpackItem(String id, String name, String downloadUrl, String type, boolean isDefault) {
             this.id = id;
             this.name = name;
             this.downloadUrl = downloadUrl;
@@ -129,12 +127,7 @@ public class SoundpackDownloadActivity extends Activity {
         SharedPreferences prefs = PreferenceManagerCompat.getDeviceSharedPreferences(this);
         mIsAmoled = mIsDarkTheme && prefs.getBoolean("pref_amoled_dark_mode", false);
 
-        mThemeBgColor = mIsAmoled ? 0xFF000000 : getResources().getColor(R.color.settings_bg);
-        mThemeCardColor = mIsAmoled ? 0xFF121214 : getResources().getColor(R.color.settings_card_bg);
-        mThemeStrokeColor = mIsAmoled ? 0xFF28282B : getResources().getColor(R.color.settings_card_stroke);
-        mThemeAccentColor = Settings.getMaterialYouAccentColor(this);
-        mThemeTextPrimary = getResources().getColor(R.color.settings_text_primary);
-        mThemeTextSecondary = getResources().getColor(R.color.settings_text_secondary);
+        initMaterialYouTheme(prefs);
 
         Window window = getWindow();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -199,6 +192,50 @@ public class SoundpackDownloadActivity extends Activity {
         loadSoundpacks();
     }
 
+    private void initMaterialYouTheme(SharedPreferences prefs) {
+        mThemeBgColor = Settings.getMaterialYouColor(this, prefs);
+        mThemeAccentColor = Settings.getMaterialYouAccentColor(this);
+
+        if (mIsAmoled) {
+            mThemeBgColor = 0xFF000000;
+            mThemeCardColor = 0xFF121214;
+            mThemeStrokeColor = 0xFF28282B;
+            mThemeTextPrimary = 0xFFFFFFFF;
+            mThemeTextSecondary = 0xFF9E9E9E;
+            return;
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            try {
+                if (mIsDarkTheme) {
+                    mThemeCardColor = getColor(android.R.color.system_neutral1_800);
+                    mThemeStrokeColor = getColor(android.R.color.system_neutral2_700);
+                    mThemeTextPrimary = getColor(android.R.color.system_neutral1_50);
+                    mThemeTextSecondary = getColor(android.R.color.system_neutral2_200);
+                } else {
+                    mThemeCardColor = getColor(android.R.color.system_neutral1_50);
+                    mThemeStrokeColor = getColor(android.R.color.system_neutral2_200);
+                    mThemeTextPrimary = getColor(android.R.color.system_neutral1_900);
+                    mThemeTextSecondary = getColor(android.R.color.system_neutral2_700);
+                }
+                return;
+            } catch (Exception ignored) {}
+        }
+
+        // Fallbacks for older Android
+        if (mIsDarkTheme) {
+            mThemeCardColor = 0xFF212126;
+            mThemeStrokeColor = 0xFF35353A;
+            mThemeTextPrimary = 0xFFEDE7F6;
+            mThemeTextSecondary = 0xFFB0BEC5;
+        } else {
+            mThemeCardColor = 0xFFFFFFFF;
+            mThemeStrokeColor = 0xFFE2E4E8;
+            mThemeTextPrimary = 0xFF1C1B1F;
+            mThemeTextSecondary = 0xFF49454F;
+        }
+    }
+
     private int dpToPx(int dp) {
         return (int) TypedValue.applyDimension(
                 TypedValue.COMPLEX_UNIT_DIP,
@@ -239,7 +276,7 @@ public class SoundpackDownloadActivity extends Activity {
 
         // Scrape Live Website Button
         mScrapeBtn = new TextView(this);
-        mScrapeBtn.setText("SCRAPE LIVE WEBSITE");
+        mScrapeBtn.setText("REFRESH LIVE STORE");
         mScrapeBtn.setTextColor(mIsDarkTheme ? 0xFF000000 : 0xFFFFFFFF);
         mScrapeBtn.setTextSize(11.5f);
         mScrapeBtn.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
@@ -436,29 +473,12 @@ public class SoundpackDownloadActivity extends Activity {
         mSoundpacks.add(new SoundpackItem("default", "System Click (Standard)", "", "Tactile", true));
         mSoundpacks.add(new SoundpackItem("default_deep", "Bubble Wrap (Synthesized)", "", "Tactile", true));
 
-        // Curated Real Mechvibes Soundpacks
-        mSoundpacks.add(new SoundpackItem("cherrymx_blue_pbt", "Cherry MX Blue",
-                "https://mechvibes.com/sound-packs/sound-pack-1200000000002", "Clicky Switch", false));
-        mSoundpacks.add(new SoundpackItem("cherrymx_brown_pbt", "Cherry MX Brown",
-                "https://mechvibes.com/sound-packs/sound-pack-1200000000003", "Tactile Switch", false));
-        mSoundpacks.add(new SoundpackItem("cherrymx_red_pbt", "Cherry MX Red",
-                "https://mechvibes.com/sound-packs/sound-pack-1200000000004", "Linear Switch", false));
-        mSoundpacks.add(new SoundpackItem("cherrymx_black_abs", "Cherry MX Black",
-                "https://mechvibes.com/sound-packs/sound-pack-1200000000001", "Linear Switch", false));
-        mSoundpacks.add(new SoundpackItem("holy_pandas", "Holy Pandas",
-                "https://mechvibes.com/sound-packs/sound-pack-v2-example-01-holy-pandas", "Tactile Thock", false));
-        mSoundpacks.add(new SoundpackItem("nk_creams", "NovelKeys Creams",
-                "https://mechvibes.com/sound-packs/sound-pack-1200000000010", "Linear Switch", false));
-        mSoundpacks.add(new SoundpackItem("ibm_model_m_ssk", "IBM Model M SSK",
-                "https://mechvibes.com/sound-packs/sound-pack-1200000000007", "Buckling Spring", false));
-        mSoundpacks.add(new SoundpackItem("topre_realforce_87u", "Topre Realforce",
-                "https://mechvibes.com/sound-packs/sound-pack-1200000000005", "Electrostatic Tactile", false));
-        mSoundpacks.add(new SoundpackItem("nk_sherbets", "NK Sherbets",
-                "https://mechvibes.com/sound-packs/sound-pack-1200000000009", "Tactile Clicky", false));
-        mSoundpacks.add(new SoundpackItem("alps_blue", "Alps Blue Keyboard",
-                "https://mechvibes.com/sound-packs/sound-pack-1200000000011", "Vintage Clicky", false));
+        // Load all 94 Official Mechvibes soundpacks from catalog
+        for (SoundpackCatalog.CatalogEntry entry : SoundpackCatalog.ENTRIES) {
+            mSoundpacks.add(new SoundpackItem(entry.id, entry.name, entry.downloadUrl, entry.type, false));
+        }
 
-        // Scan Local Installed Packs
+        // Scan Local Installed Packs and sync exact names
         File soundpacksDir = getExternalFilesDir("soundpacks");
         if (soundpacksDir != null && soundpacksDir.exists() && soundpacksDir.isDirectory()) {
             File[] files = soundpacksDir.listFiles();
@@ -475,6 +495,10 @@ public class SoundpackDownloadActivity extends Activity {
                             for (SoundpackItem item : mSoundpacks) {
                                 if (item.id.equals(id)) {
                                     item.status = "Installed";
+                                    String exactLocalName = readLocalSoundpackName(file, id);
+                                    if (exactLocalName != null && !exactLocalName.isEmpty()) {
+                                        item.name = exactLocalName;
+                                    }
                                 }
                             }
                         } else {
@@ -521,28 +545,7 @@ public class SoundpackDownloadActivity extends Activity {
             } catch (Exception ignored) {}
         }
 
-        String clean = folderName.replace("custom_sound_pack_", "")
-                .replace("sound_pack_", "")
-                .replace("custom-sound-pack-", "")
-                .replace("sound-pack-", "")
-                .replace("traveler-", "")
-                .replace("-", " ")
-                .replace("_", " ");
-
-        try {
-            long num = Long.parseLong(clean.trim());
-            return "Mechvibes Pack #" + (num % 1000);
-        } catch (Exception ignored) {}
-
-        String[] words = clean.split("\\s+");
-        StringBuilder sb = new StringBuilder();
-        for (String w : words) {
-            if (w.length() > 0) {
-                sb.append(Character.toUpperCase(w.charAt(0))).append(w.substring(1)).append(" ");
-            }
-        }
-        String res = sb.toString().trim();
-        return res.isEmpty() ? folderName : res;
+        return SoundpackCatalog.resolveName(folderName);
     }
 
     private void updateStats() {
@@ -574,7 +577,7 @@ public class SoundpackDownloadActivity extends Activity {
     private void scrapeLiveSoundpacks() {
         mMainProgressBar.setVisibility(View.VISIBLE);
         mMainProgressBar.setIndeterminate(true);
-        mLoadingText.setText("Scraping live packs from mechvibes.com...");
+        mLoadingText.setText("Connecting to Mechvibes live catalog...");
         mLoadingText.setVisibility(View.VISIBLE);
         if (mScrapeBtn != null) mScrapeBtn.setEnabled(false);
 
@@ -636,17 +639,7 @@ public class SoundpackDownloadActivity extends Activity {
                         }
 
                         if (packName.isEmpty()) {
-                            String cleanName = id.replace("custom-sound-pack-", "")
-                                    .replace("sound-pack-", "")
-                                    .replace("traveler-", "");
-                            String[] parts = cleanName.split("-");
-                            StringBuilder sb = new StringBuilder();
-                            for (String p : parts) {
-                                if (p.length() > 0) {
-                                    sb.append(Character.toUpperCase(p.charAt(0))).append(p.substring(1)).append(" ");
-                                }
-                            }
-                            packName = sb.toString().trim();
+                            packName = SoundpackCatalog.resolveName(id);
                         }
 
                         String type = "Mechanical Switch";
@@ -677,7 +670,7 @@ public class SoundpackDownloadActivity extends Activity {
                 if (mScrapeBtn != null) mScrapeBtn.setEnabled(true);
 
                 if (scrapedItems == null || scrapedItems.isEmpty()) {
-                    Toast.makeText(SoundpackDownloadActivity.this, "Could not reach Mechvibes. Please check your internet connection.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(SoundpackDownloadActivity.this, "Live catalog synced (" + mSoundpacks.size() + " soundpacks ready).", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
@@ -696,7 +689,7 @@ public class SoundpackDownloadActivity extends Activity {
 
                 filterCatalog(mSearchInput.getText().toString());
                 updateStats();
-                Toast.makeText(SoundpackDownloadActivity.this, "Scraped " + scrapedItems.size() + " soundpacks (" + newCount + " new)", Toast.LENGTH_SHORT).show();
+                Toast.makeText(SoundpackDownloadActivity.this, "Synced " + mSoundpacks.size() + " soundpacks.", Toast.LENGTH_SHORT).show();
             }
         }.execute();
     }

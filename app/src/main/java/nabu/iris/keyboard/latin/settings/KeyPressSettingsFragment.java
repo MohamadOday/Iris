@@ -31,9 +31,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.json.JSONObject;
 
@@ -44,19 +42,6 @@ import nabu.iris.keyboard.latin.AudioAndHapticFeedbackManager;
  * "Keypress" settings sub screen.
  */
 public final class KeyPressSettingsFragment extends SubScreenFragment {
-    private static final Map<String, String> CURATED_PACK_NAMES = new HashMap<>();
-    static {
-        CURATED_PACK_NAMES.put("cherrymx_blue_pbt", "Cherry MX Blue");
-        CURATED_PACK_NAMES.put("cherrymx_brown_pbt", "Cherry MX Brown");
-        CURATED_PACK_NAMES.put("cherrymx_red_pbt", "Cherry MX Red");
-        CURATED_PACK_NAMES.put("cherrymx_black_abs", "Cherry MX Black");
-        CURATED_PACK_NAMES.put("holy_pandas", "Holy Pandas");
-        CURATED_PACK_NAMES.put("nk_creams", "NovelKeys Creams");
-        CURATED_PACK_NAMES.put("ibm_model_m_ssk", "IBM Model M SSK");
-        CURATED_PACK_NAMES.put("topre_realforce_87u", "Topre Realforce");
-        CURATED_PACK_NAMES.put("nk_sherbets", "NK Sherbets");
-        CURATED_PACK_NAMES.put("alps_blue", "Alps Blue Keyboard");
-    }
 
     @Override
     public void onCreate(final Bundle icicle) {
@@ -73,8 +58,6 @@ public final class KeyPressSettingsFragment extends SubScreenFragment {
         super.onResume();
         final Preference soundEffectPreference = findPreference(Settings.PREF_SOUND_ON);
         if (soundEffectPreference != null) {
-            final SharedPreferences prefs = getSharedPreferences();
-            final Resources res = getResources();
             setPreferenceEnabled(Settings.PREF_SOUND_ON, true);
         }
         setupKeypressSoundpackSettings();
@@ -256,34 +239,8 @@ public final class KeyPressSettingsFragment extends SubScreenFragment {
             } catch (Exception ignored) {}
         }
 
-        // 3. Check curated dictionary
-        if (CURATED_PACK_NAMES.containsKey(folderName)) {
-            return CURATED_PACK_NAMES.get(folderName);
-        }
-
-        // 4. Format clean title from ID
-        String clean = folderName.replace("custom_sound_pack_", "")
-                .replace("sound_pack_", "")
-                .replace("custom-sound-pack-", "")
-                .replace("sound-pack-", "")
-                .replace("traveler-", "")
-                .replace("-", " ")
-                .replace("_", " ");
-
-        try {
-            long num = Long.parseLong(clean.trim());
-            return "Mechvibes Pack #" + (num % 1000);
-        } catch (Exception ignored) {}
-
-        String[] words = clean.split("\\s+");
-        StringBuilder sb = new StringBuilder();
-        for (String w : words) {
-            if (w.length() > 0) {
-                sb.append(Character.toUpperCase(w.charAt(0))).append(w.substring(1)).append(" ");
-            }
-        }
-        String res = sb.toString().trim();
-        return res.isEmpty() ? folderName : res;
+        // 3. Check official SoundpackCatalog resolver
+        return SoundpackCatalog.resolveName(folderName);
     }
 
     private void updateSoundpackSummary(android.preference.ListPreference pref, String value, List<String> names, List<String> values) {
@@ -291,7 +248,7 @@ public final class KeyPressSettingsFragment extends SubScreenFragment {
         if (idx != -1) {
             pref.setSummary(names.get(idx));
         } else {
-            pref.setSummary("System Click (Standard)");
+            pref.setSummary(SoundpackCatalog.resolveName(value));
         }
     }
 }
