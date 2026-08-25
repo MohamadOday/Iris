@@ -652,7 +652,7 @@ public final class ClipboardBarController {
         SharedPreferences prefs = PreferenceManagerCompat.getDeviceSharedPreferences(mContext);
         boolean showKeys = prefs.getBoolean("pref_utility_show_keys", true);
         boolean showClipboard = prefs.getBoolean("pref_utility_show_clipboard", true);
-        boolean showAi = prefs.getBoolean("pref_utility_show_ai", true);
+        boolean showAi = prefs.getBoolean("pref_ai_enabled", true) && prefs.getBoolean("pref_utility_show_ai", true);
         boolean showGif = prefs.getBoolean("pref_utility_show_gif", true);
         boolean showTranslate = prefs.getBoolean("pref_utility_show_translate", true);
         boolean showEmoji = prefs.getBoolean(Settings.PREF_SHOW_EMOJI_KEY, true);

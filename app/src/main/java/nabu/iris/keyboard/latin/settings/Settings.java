@@ -28,6 +28,7 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -349,7 +350,82 @@ public final class Settings extends BroadcastReceiver implements SharedPreferenc
     }
 
     public static int readKeyboardColor(final SharedPreferences prefs, final Context context) {
-        return prefs.getInt(PREF_KEYBOARD_COLOR, readKeyboardDefaultColor(context));
+        if (prefs != null && prefs.getBoolean("pref_material_you_auto_color", true)) {
+            return getMaterialYouColor(context, prefs);
+        }
+        return prefs != null ? prefs.getInt(PREF_KEYBOARD_COLOR, readKeyboardDefaultColor(context))
+                : readKeyboardDefaultColor(context);
+    }
+
+    public static int getMaterialYouColor(final Context context, final SharedPreferences prefs) {
+        if (context == null) return 0xFF1C1B1F;
+
+        boolean isDark = (context.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK)
+                == Configuration.UI_MODE_NIGHT_YES;
+        boolean isAmoled = isDark && (prefs != null && prefs.getBoolean("pref_amoled_dark_mode", false));
+
+        if (isAmoled) {
+            return 0xFF000000;
+        }
+
+        // Android 12+ (API 31+) Monet dynamic system color attributes
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            try {
+                int resId = isDark ? android.R.color.system_neutral1_900 : android.R.color.system_neutral1_50;
+                return context.getColor(resId);
+            } catch (Exception ignored) {}
+        }
+
+        // Android 8.1 - 11 (API 27 - 30) Wallpaper dominant color
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            try {
+                android.app.WallpaperManager wm = android.app.WallpaperManager.getInstance(context);
+                android.app.WallpaperColors wc = wm.getWallpaperColors(android.app.WallpaperManager.FLAG_SYSTEM);
+                if (wc != null && wc.getPrimaryColor() != null) {
+                    int primary = wc.getPrimaryColor().toArgb();
+                    float[] hsv = new float[3];
+                    Color.colorToHSV(primary, hsv);
+                    if (isDark) {
+                        hsv[1] = Math.min(hsv[1] * 0.25f, 0.20f);
+                        hsv[2] = 0.12f;
+                        return Color.HSVToColor(hsv);
+                    } else {
+                        hsv[1] = Math.min(hsv[1] * 0.12f, 0.10f);
+                        hsv[2] = 0.95f;
+                        return Color.HSVToColor(hsv);
+                    }
+                }
+            } catch (Exception ignored) {}
+        }
+
+        // Fallback adaptive palettes
+        return isDark ? 0xFF1E1E24 : 0xFFF2F2F7;
+    }
+
+    public static int getMaterialYouAccentColor(final Context context) {
+        if (context == null) return 0xFF7C4DFF;
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            try {
+                return context.getColor(android.R.color.system_accent1_500);
+            } catch (Exception ignored) {}
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            try {
+                android.app.WallpaperManager wm = android.app.WallpaperManager.getInstance(context);
+                android.app.WallpaperColors wc = wm.getWallpaperColors(android.app.WallpaperManager.FLAG_SYSTEM);
+                if (wc != null && wc.getPrimaryColor() != null) {
+                    return wc.getPrimaryColor().toArgb();
+                }
+            } catch (Exception ignored) {}
+        }
+
+        try {
+            return context.getResources().getColor(R.color.settings_accent);
+        } catch (Exception e) {
+            return 0xFF7C4DFF;
+        }
     }
 
     public static void removeKeyboardColor(final SharedPreferences prefs) {

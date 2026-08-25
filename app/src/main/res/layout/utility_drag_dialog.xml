@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+** Copyright 2026 Iris Keyboard Project
+*/
+-->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -10,44 +15,64 @@
         android:orientation="vertical"
         android:padding="16dp">
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="TOOLBAR VISIBILITY"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:textColor="@color/settings_accent"
+            android:letterSpacing="0.06"
+            android:layout_marginBottom="12dp" />
+
         <Switch
             android:id="@+id/switch_keys"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="12dp"
+            android:padding="14dp"
             android:text="Keyboard Keys"
-            android:textSize="16sp" />
+            android:textSize="15sp"
+            android:textColor="@color/settings_text_primary"
+            android:layout_marginBottom="6dp" />
 
         <Switch
             android:id="@+id/switch_clipboard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="12dp"
-            android:text="Clipboard"
-            android:textSize="16sp" />
+            android:padding="14dp"
+            android:text="Clipboard Manager"
+            android:textSize="15sp"
+            android:textColor="@color/settings_text_primary"
+            android:layout_marginBottom="6dp" />
 
         <Switch
             android:id="@+id/switch_ai"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="12dp"
-            android:text="AI Copilot"
-            android:textSize="16sp" />
+            android:padding="14dp"
+            android:text="AI Copilot Toolbar"
+            android:textSize="15sp"
+            android:textColor="@color/settings_text_primary"
+            android:layout_marginBottom="6dp" />
 
         <Switch
             android:id="@+id/switch_emoji"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="12dp"
-            android:text="Emoji Panel"
-            android:textSize="16sp" />
+            android:padding="14dp"
+            android:text="Emoji Quick Bar"
+            android:textSize="15sp"
+            android:textColor="@color/settings_text_primary"
+            android:layout_marginBottom="6dp" />
 
         <Switch
             android:id="@+id/switch_settings"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="12dp"
-            android:text="Settings"
-            android:textSize="16sp" />
+            android:padding="14dp"
+            android:text="Quick Settings"
+            android:textSize="15sp"
+            android:textColor="@color/settings_text_primary"
+            android:layout_marginBottom="6dp" />
     </LinearLayout>
 </ScrollView>

@@ -140,6 +140,7 @@ public final class LanguagesSettingsFragment extends PreferenceFragment {
 
         buildLanguagePreferences(usedLocales, group, context);
         setLocaleEntries(usedLocales, unusedLocales);
+        SettingsActivity.stylePreferenceFragment(this);
     }
 
     /**

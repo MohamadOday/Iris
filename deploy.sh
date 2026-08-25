@@ -37,7 +37,13 @@ echo "[+] Transfer complete!"
 
 # 4. Install the APK
 echo "[*] Step 3: Installing APK via Shizuku Package Manager..."
-"$RISH" -c "pm install -r -d $TEMP_DEVICE_APK"
+INSTALL_OUTPUT=$("$RISH" -c "pm install -r -d $TEMP_DEVICE_APK" 2>&1 || true)
+if echo "$INSTALL_OUTPUT" | grep -q "INSTALL_FAILED_UPDATE_INCOMPATIBLE"; then
+    echo "[!] Signature mismatch detected. Performing clean reinstall..."
+    "$RISH" -c "pm uninstall $PACKAGE_NAME && pm install $TEMP_DEVICE_APK"
+else
+    echo "$INSTALL_OUTPUT"
+fi
 echo "[+] Installation successful!"
 
 # 5. Launch the Application

@@ -86,6 +86,7 @@ public final class SingleLanguageSettingsFragment extends PreferenceFragment {
         group.addPreference(mainCategory);
 
         buildSubtypePreferences(locale, group, context);
+        SettingsActivity.stylePreferenceFragment(this);
     }
 
     /**

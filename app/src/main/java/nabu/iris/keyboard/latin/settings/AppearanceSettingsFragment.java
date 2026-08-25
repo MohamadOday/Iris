@@ -31,6 +31,8 @@ import nabu.iris.keyboard.keyboard.KeyboardTheme;
  * "Appearance" settings sub screen.
  */
 public final class AppearanceSettingsFragment extends SubScreenFragment {
+    private static final String PREF_MATERIAL_YOU = "pref_material_you_auto_color";
+
     @Override
     public void onCreate(final Bundle icicle) {
         super.onCreate(icicle);
@@ -44,24 +46,31 @@ public final class AppearanceSettingsFragment extends SubScreenFragment {
     @Override
     public void onResume() {
         super.onResume();
-
         ThemeSettingsFragment.updateKeyboardThemeSummary(findPreference(Settings.SCREEN_THEME));
-
-        final Preference colorPreference = findPreference(Settings.PREF_KEYBOARD_COLOR);
-        if (colorPreference.isEnabled()) {
-            final SharedPreferences prefs = getSharedPreferences();
-            final KeyboardTheme theme = KeyboardTheme.getKeyboardTheme(prefs);
-            colorPreference.setEnabled(theme.mCustomColorSupport);
-        }
+        updateColorPreferenceState();
     }
 
     @Override
     public void onSharedPreferenceChanged(final SharedPreferences prefs, final String key) {
-        if (KeyboardTheme.KEYBOARD_THEME_KEY.equals(key)) {
+        if (KeyboardTheme.KEYBOARD_THEME_KEY.equals(key) || PREF_MATERIAL_YOU.equals(key)) {
             ThemeSettingsFragment.updateKeyboardThemeSummary(findPreference(Settings.SCREEN_THEME));
+            updateColorPreferenceState();
+        }
+    }
 
-            final KeyboardTheme theme = KeyboardTheme.getKeyboardTheme(prefs);
-            setPreferenceEnabled(Settings.PREF_KEYBOARD_COLOR, theme.mCustomColorSupport);
+    private void updateColorPreferenceState() {
+        final SharedPreferences prefs = getSharedPreferences();
+        final KeyboardTheme theme = KeyboardTheme.getKeyboardTheme(prefs);
+        final boolean autoColor = prefs.getBoolean(PREF_MATERIAL_YOU, true);
+        final Preference colorPreference = findPreference(Settings.PREF_KEYBOARD_COLOR);
+        if (colorPreference != null) {
+            if (autoColor) {
+                colorPreference.setEnabled(false);
+                colorPreference.setSummary("Material You Dynamic Color Active");
+            } else {
+                colorPreference.setEnabled(theme.mCustomColorSupport);
+                colorPreference.setSummary(null);
+            }
         }
     }
 
@@ -106,9 +115,6 @@ public final class AppearanceSettingsFragment extends SubScreenFragment {
 
             @Override
             public String getValueText(final int value) {
-                if (value < 0) {
-                    return res.getString(R.string.settings_system_default);
-                }
                 return res.getString(R.string.abbreviation_unit_percent, value);
             }
 
@@ -170,7 +176,8 @@ public final class AppearanceSettingsFragment extends SubScreenFragment {
         pref.setInterface(new ColorDialogPreference.ValueProxy() {
             @Override
             public void writeValue(final int value, final String key) {
-                prefs.edit().putInt(key, value).apply();
+                prefs.edit().putInt(key, value).putBoolean(PREF_MATERIAL_YOU, false).apply();
+                updateColorPreferenceState();
             }
 
             @Override
@@ -181,6 +188,8 @@ public final class AppearanceSettingsFragment extends SubScreenFragment {
             @Override
             public void writeDefaultValue(final String key) {
                 Settings.removeKeyboardColor(prefs);
+                prefs.edit().putBoolean(PREF_MATERIAL_YOU, true).apply();
+                updateColorPreferenceState();
             }
         });
     }

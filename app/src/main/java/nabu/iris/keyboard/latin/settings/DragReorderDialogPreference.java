@@ -4,8 +4,13 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
+import android.os.Build;
 import android.preference.DialogPreference;
 import android.util.AttributeSet;
+import android.util.TypedValue;
 import android.view.View;
 import android.widget.Switch;
 
@@ -24,6 +29,14 @@ public final class DragReorderDialogPreference extends DialogPreference {
         setDialogLayoutResource(R.layout.utility_drag_dialog);
     }
 
+    private int dpToPx(int dp) {
+        return (int) TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP,
+                dp,
+                getContext().getResources().getDisplayMetrics()
+        );
+    }
+
     @Override
     protected View onCreateDialogView() {
         final View view = super.onCreateDialogView();
@@ -32,7 +45,37 @@ public final class DragReorderDialogPreference extends DialogPreference {
         mSwitchAi = (Switch) view.findViewById(R.id.switch_ai);
         mSwitchEmoji = (Switch) view.findViewById(R.id.switch_emoji);
         mSwitchSettings = (Switch) view.findViewById(R.id.switch_settings);
+
+        int accentColor = getContext().getResources().getColor(R.color.settings_accent);
+        int cardColor = getContext().getResources().getColor(R.color.settings_card_bg);
+        int strokeColor = getContext().getResources().getColor(R.color.settings_card_stroke);
+
+        styleSwitch(mSwitchKeys, accentColor, cardColor, strokeColor);
+        styleSwitch(mSwitchClipboard, accentColor, cardColor, strokeColor);
+        styleSwitch(mSwitchAi, accentColor, cardColor, strokeColor);
+        styleSwitch(mSwitchEmoji, accentColor, cardColor, strokeColor);
+        styleSwitch(mSwitchSettings, accentColor, cardColor, strokeColor);
+
         return view;
+    }
+
+    private void styleSwitch(Switch sw, int accentColor, int cardColor, int strokeColor) {
+        if (sw == null) return;
+
+        GradientDrawable bg = new GradientDrawable();
+        bg.setShape(GradientDrawable.RECTANGLE);
+        bg.setCornerRadius(dpToPx(16));
+        bg.setColor(cardColor);
+        if (strokeColor != 0) {
+            bg.setStroke(dpToPx(1), strokeColor);
+        }
+        sw.setBackground(bg);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            int trackColor = Color.argb(60, Color.red(accentColor), Color.green(accentColor), Color.blue(accentColor));
+            sw.setThumbTintList(ColorStateList.valueOf(accentColor));
+            sw.setTrackTintList(ColorStateList.valueOf(trackColor));
+        }
     }
 
     @Override

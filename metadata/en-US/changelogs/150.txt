@@ -1,5 +1,0 @@
-- Added geometric key shape selections (Circle, Squircle, Hexagon, Square).
-- Added horizontal and vertical spacing controls.
-- Added uniform and custom width/height key size options.
-- Added custom keyboard background images with stretch and aspect crop styles.
-- Added interactive settings click guidance.

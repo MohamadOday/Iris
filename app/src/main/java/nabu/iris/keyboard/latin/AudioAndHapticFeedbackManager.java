@@ -81,16 +81,17 @@ public final class AudioAndHapticFeedbackManager {
         if (mContext == null) {
             mContext = context.getApplicationContext();
         }
+        if (mAudioManager == null && mContext != null) {
+            mAudioManager = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
+        }
+        if (mVibrator == null && mContext != null) {
+            mVibrator = (Vibrator) mContext.getSystemService(Context.VIBRATOR_SERVICE);
+        }
         if (mBackgroundThread == null) {
             mBackgroundThread = Executors.newSingleThreadExecutor();
         }
         if (mSoundPool == null) {
             mBackgroundThread.execute(() -> {
-                ensureBuiltinSoundpacksGenerated(mContext);
-
-                mAudioManager = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
-                mVibrator = (Vibrator) mContext.getSystemService(Context.VIBRATOR_SERVICE);
-
                 AudioAttributes attrs = new AudioAttributes.Builder()
                         .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
                         .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
@@ -109,130 +110,70 @@ public final class AudioAndHapticFeedbackManager {
         }
     }
 
-    private void ensureBuiltinSoundpacksGenerated(final Context context) {
-        try {
-            File soundpacksDir = context.getExternalFilesDir("soundpacks");
-            if (soundpacksDir == null) return;
-            if (!soundpacksDir.exists()) {
-                soundpacksDir.mkdirs();
-            }
+    private void loadSoundpack(final Context context, final String soundpackName) {
+        if (mSoundPool == null) return;
 
-            // Create default soundpacks
-            String[] packs = {};
-            int[] packIds = {};
-
-            for (int p = 0; p < packs.length; p++) {
-                File packDir = new File(soundpacksDir, packs[p]);
-                if (!packDir.exists()) {
-                    packDir.mkdirs();
-                }
-
-                String[] keyTypes = {"standard", "spacebar", "delete", "return"};
-                for (String keyType : keyTypes) {
-                    File file = new File(packDir, keyType + ".wav");
-                    if (!file.exists()) {
-                        short[] pcm = KeySoundSynthesizer.synthesize(packIds[p], keyType);
-                        KeySoundSynthesizer.writeWavFile(file, pcm, 44100);
-                    }
-                }
-            }
-        } catch (Exception e) {
-            Log.e("AudioFeedback", "Error generating builtin soundpacks", e);
-        }
-    }
-
-    private void loadSoundpack(final Context context, final String soundpack) {
-        if (mSoundPool != null) {
-            // Unload all scancode-specific sounds
-            for (int soundId : mSoundMap.values()) {
-                if (soundId != -1) {
-                    mSoundPool.unload(soundId);
-                }
-            }
-            mSoundMap.clear();
-
-            if (mSoundStandard != -1) mSoundPool.unload(mSoundStandard);
-            if (mSoundSpacebar != -1) mSoundPool.unload(mSoundSpacebar);
-            if (mSoundDelete != -1) mSoundPool.unload(mSoundDelete);
-            if (mSoundReturn != -1) mSoundPool.unload(mSoundReturn);
-        }
-
+        // Reset previous sound IDs
         mSoundStandard = -1;
         mSoundSpacebar = -1;
         mSoundDelete = -1;
         mSoundReturn = -1;
+        mSoundMap.clear();
 
-        if (soundpack == null || soundpack.equals("default")) {
-            mSoundStandard = loadSound(context, "keypress_standard");
-            mSoundSpacebar = loadSound(context, "keypress_spacebar");
-            mSoundDelete = loadSound(context, "keypress_delete");
-            mSoundReturn = loadSound(context, "keypress_return");
-
-            // Populate mapping for standard iOS profile
-            mSoundMap.put(14, mSoundDelete); // backspace
-            mSoundMap.put(28, mSoundReturn); // enter
-            mSoundMap.put(57, mSoundSpacebar); // spacebar
-            mSoundMap.put(15, mSoundSpacebar); // tab -> Alternate
-            mSoundMap.put(42, mSoundSpacebar); // shift left -> Alternate
-            mSoundMap.put(54, mSoundSpacebar); // shift right -> Alternate
-            mSoundMap.put(29, mSoundSpacebar); // ctrl left -> Alternate
-            mSoundMap.put(56, mSoundSpacebar); // alt left -> Alternate
-        } else if (soundpack.equals("default_deep")) {
-            mSoundStandard = loadSound(context, "keypress_standard_deep");
-            mSoundSpacebar = loadSound(context, "keypress_spacebar_deep");
-            mSoundDelete = loadSound(context, "keypress_delete_deep");
-            mSoundReturn = loadSound(context, "keypress_return_deep");
-
-            // Populate mapping for iOS Deep profile
-            mSoundMap.put(14, mSoundDelete); // backspace
-            mSoundMap.put(28, mSoundReturn); // enter
-            mSoundMap.put(57, mSoundSpacebar); // spacebar
-            mSoundMap.put(15, mSoundSpacebar); // tab -> Alternate
-            mSoundMap.put(42, mSoundSpacebar); // shift left -> Alternate
-            mSoundMap.put(54, mSoundSpacebar); // shift right -> Alternate
-            mSoundMap.put(29, mSoundSpacebar); // ctrl left -> Alternate
-            mSoundMap.put(56, mSoundSpacebar); // alt left -> Alternate
-        } else {
-            File soundpacksDir = context.getExternalFilesDir("soundpacks");
-            if (soundpacksDir != null) {
-                File packDir = new File(soundpacksDir, soundpack);
-                if (packDir.exists() && packDir.isDirectory()) {
-                    mSoundStandard = loadWavFile(packDir, "standard");
-                    mSoundSpacebar = loadWavFile(packDir, "spacebar");
-                    mSoundDelete = loadWavFile(packDir, "delete");
-                    mSoundReturn = loadWavFile(packDir, "return");
-
-                    // Scan the folder for <scancode>.wav files and load them
-                    File[] files = packDir.listFiles();
-                    if (files != null) {
-                        for (File f : files) {
-                            String name = f.getName();
-                            if (name.endsWith(".wav")) {
-                                String base = name.substring(0, name.length() - 4);
-                                try {
-                                    int scancode = Integer.parseInt(base);
-                                    int soundId = mSoundPool.load(f.getAbsolutePath(), 1);
-                                    mSoundMap.put(scancode, soundId);
-                                } catch (NumberFormatException e) {
-                                    // Ignore non-numeric filenames
-                                }
+        File soundpacksDir = context.getExternalFilesDir("soundpacks");
+        if (soundpacksDir != null) {
+            File packDir = new File(soundpacksDir, soundpackName);
+            if (packDir.exists() && packDir.isDirectory()) {
+                File[] files = packDir.listFiles();
+                if (files != null) {
+                    for (File file : files) {
+                        String name = file.getName();
+                        if (name.endsWith(".wav")) {
+                            try {
+                                String baseName = name.substring(0, name.length() - 4);
+                                int keyCode = Integer.parseInt(baseName);
+                                int sid = mSoundPool.load(file.getAbsolutePath(), 1);
+                                mSoundMap.put(keyCode, sid);
+                            } catch (NumberFormatException ignored) {
                             }
                         }
                     }
                 }
-            }
-        }
-    }
 
-    private int loadWavFile(File directory, String keyType) {
-        String[] extensions = {".wav", ".ogg", ".mp3"};
-        for (String ext : extensions) {
-            File file = new File(directory, keyType + ext);
-            if (file.exists()) {
-                return mSoundPool.load(file.getAbsolutePath(), 1);
+                File standardFile = new File(packDir, "standard.wav");
+                File spacebarFile = new File(packDir, "spacebar.wav");
+                File deleteFile = new File(packDir, "delete.wav");
+                File returnFile = new File(packDir, "return.wav");
+
+                if (standardFile.exists()) {
+                    mSoundStandard = mSoundPool.load(standardFile.getAbsolutePath(), 1);
+                }
+                if (spacebarFile.exists()) {
+                    mSoundSpacebar = mSoundPool.load(spacebarFile.getAbsolutePath(), 1);
+                }
+                if (deleteFile.exists()) {
+                    mSoundDelete = mSoundPool.load(deleteFile.getAbsolutePath(), 1);
+                }
+                if (returnFile.exists()) {
+                    mSoundReturn = mSoundPool.load(returnFile.getAbsolutePath(), 1);
+                }
             }
         }
-        return -1;
+
+        // Fallback to built-in raw resources if custom pack files not loaded
+        if (mSoundStandard == -1) mSoundStandard = loadSound(context, "fx_keypress_standard");
+        if (mSoundSpacebar == -1) mSoundSpacebar = loadSound(context, "fx_keypress_spacebar");
+        if (mSoundDelete == -1) mSoundDelete = loadSound(context, "fx_keypress_delete");
+        if (mSoundReturn == -1) mSoundReturn = loadSound(context, "fx_keypress_return");
+
+        if (mSoundStandard == -1) mSoundStandard = loadSound(context, "fx_standard");
+        if (mSoundSpacebar == -1) mSoundSpacebar = loadSound(context, "fx_spacebar");
+        if (mSoundDelete == -1) mSoundDelete = loadSound(context, "fx_delete");
+        if (mSoundReturn == -1) mSoundReturn = loadSound(context, "fx_return");
+
+        if (mSoundSpacebar == -1) mSoundSpacebar = mSoundStandard;
+        if (mSoundDelete == -1) mSoundDelete = mSoundStandard;
+        if (mSoundReturn == -1) mSoundReturn = mSoundStandard;
     }
 
     private int loadSound(final Context context, final String name) {
@@ -244,7 +185,14 @@ public final class AudioAndHapticFeedbackManager {
     }
 
     public boolean hasVibrator() {
+        if (mVibrator == null && mContext != null) {
+            mVibrator = (Vibrator) mContext.getSystemService(Context.VIBRATOR_SERVICE);
+        }
         return mVibrator != null && mVibrator.hasVibrator();
+    }
+
+    public boolean hasSound() {
+        return mSoundPool != null;
     }
 
     private boolean reevaluateIfSoundIsOn() {
@@ -256,7 +204,6 @@ public final class AudioAndHapticFeedbackManager {
 
     public static int getScancodeFromCode(int code) {
         switch (code) {
-            // Special keys
             case Constants.CODE_DELETE: return 14;
             case Constants.CODE_ENTER: return 28;
             case Constants.CODE_SHIFT_ENTER: return 28;
@@ -265,7 +212,6 @@ public final class AudioAndHapticFeedbackManager {
             case Constants.CODE_SHIFT: return 42;
             case Constants.CODE_CAPSLOCK: return 58;
 
-            // Numbers
             case '1': return 2;
             case '2': return 3;
             case '3': return 4;
@@ -277,7 +223,6 @@ public final class AudioAndHapticFeedbackManager {
             case '9': return 10;
             case '0': return 11;
 
-            // Letters
             case 'q': case 'Q': return 16;
             case 'w': case 'W': return 17;
             case 'e': case 'E': return 18;
@@ -305,7 +250,6 @@ public final class AudioAndHapticFeedbackManager {
             case 'n': case 'N': return 49;
             case 'm': case 'M': return 50;
 
-            // Symbols
             case '-': return 12;
             case '=': return 13;
             case '[': return 26;
@@ -318,7 +262,7 @@ public final class AudioAndHapticFeedbackManager {
             case '.': return 52;
             case '/': return 53;
 
-            default: return 30; // Fallback to standard key 'A'
+            default: return 30;
         }
     }
 
@@ -339,7 +283,6 @@ public final class AudioAndHapticFeedbackManager {
             }
         }
 
-        // Fallback to legacy playSoundEffect
         final int soundType;
         switch (code) {
         case Constants.CODE_DELETE:
@@ -392,31 +335,64 @@ public final class AudioAndHapticFeedbackManager {
     }
 
     public void performHapticFeedback(final View viewToPerformHapticFeedbackOn) {
-        if (!mSettingsValues.mVibrateOn || mVibrator == null) {
+        if (mSettingsValues == null || !mSettingsValues.mVibrateOn) {
             return;
         }
-        mBackgroundThread.execute(() -> {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                mVibrator.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK));
-            } else if (viewToPerformHapticFeedbackOn != null) {
+        if (mVibrator == null && mContext != null) {
+            mVibrator = (Vibrator) mContext.getSystemService(Context.VIBRATOR_SERVICE);
+        }
+        if (mVibrator == null || !mVibrator.hasVibrator()) {
+            if (viewToPerformHapticFeedbackOn != null) {
                 viewToPerformHapticFeedbackOn.performHapticFeedback(
                         HapticFeedbackConstants.KEYBOARD_TAP,
                         HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
             }
-        });
-    }
-
-    public void performTickFeedback() {
-        if (!mSettingsValues.mVibrateOn
-                || mVibrator == null
-                || System.currentTimeMillis() - mLastTickTime < TICK_FREQUENCY ) {
             return;
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            mLastTickTime = System.currentTimeMillis();
+        if (mBackgroundThread != null) {
             mBackgroundThread.execute(() -> {
-                mVibrator.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_TICK));
+                try {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        mVibrator.vibrate(VibrationEffect.createOneShot(20, VibrationEffect.DEFAULT_AMPLITUDE));
+                    } else {
+                        mVibrator.vibrate(20);
+                    }
+                } catch (Exception e) {
+                    try {
+                        if (viewToPerformHapticFeedbackOn != null) {
+                            viewToPerformHapticFeedbackOn.performHapticFeedback(
+                                    HapticFeedbackConstants.KEYBOARD_TAP,
+                                    HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
+                        }
+                    } catch (Exception ignored) {}
+                }
+            });
+        }
+    }
+
+    public void performTickFeedback() {
+        if (mSettingsValues == null || !mSettingsValues.mVibrateOn
+                || System.currentTimeMillis() - mLastTickTime < TICK_FREQUENCY) {
+            return;
+        }
+        if (mVibrator == null && mContext != null) {
+            mVibrator = (Vibrator) mContext.getSystemService(Context.VIBRATOR_SERVICE);
+        }
+        if (mVibrator == null || !mVibrator.hasVibrator()) {
+            return;
+        }
+
+        mLastTickTime = System.currentTimeMillis();
+        if (mBackgroundThread != null) {
+            mBackgroundThread.execute(() -> {
+                try {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        mVibrator.vibrate(VibrationEffect.createOneShot(10, VibrationEffect.DEFAULT_AMPLITUDE));
+                    } else {
+                        mVibrator.vibrate(10);
+                    }
+                } catch (Exception ignored) {}
             });
         }
     }

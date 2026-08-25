@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2013 The Android Open Source Project
  * Copyright (C) 2022 Raimondas Rimkus
+ * Copyright (C) 2026 Iris Keyboard Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +21,15 @@ package nabu.iris.keyboard.latin.settings;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.RippleDrawable;
+import android.os.Build;
 import android.preference.DialogPreference;
 import android.util.AttributeSet;
+import android.util.TypedValue;
 import android.view.View;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -44,7 +51,10 @@ public final class SeekBarDialogPreference extends DialogPreference
     private final int mMinValue;
     private final int mStepValue;
 
+    private View mValueContainer;
     private TextView mValueView;
+    private TextView mBtnMinus;
+    private TextView mBtnPlus;
     private SeekBar mSeekBar;
 
     private ValueProxy mValueProxy;
@@ -66,14 +76,100 @@ public final class SeekBarDialogPreference extends DialogPreference
         setSummary(mValueProxy.getValueText(value));
     }
 
+    private int dpToPx(int dp) {
+        return (int) TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP,
+                dp,
+                getContext().getResources().getDisplayMetrics()
+        );
+    }
+
     @Override
     protected View onCreateDialogView() {
         final View view = super.onCreateDialogView();
-        mSeekBar = (SeekBar)view.findViewById(R.id.seek_bar_dialog_bar);
+        mValueContainer = view.findViewById(R.id.seek_bar_value_container);
+        mValueView = (TextView) view.findViewById(R.id.seek_bar_dialog_value);
+        mBtnMinus = (TextView) view.findViewById(R.id.seek_bar_btn_minus);
+        mBtnPlus = (TextView) view.findViewById(R.id.seek_bar_btn_plus);
+        mSeekBar = (SeekBar) view.findViewById(R.id.seek_bar_dialog_bar);
+
+        int accentColor = getContext().getResources().getColor(R.color.settings_accent);
+
+        if (mValueContainer != null) {
+            GradientDrawable valBg = new GradientDrawable();
+            valBg.setShape(GradientDrawable.RECTANGLE);
+            valBg.setCornerRadius(dpToPx(16));
+            int valBgColor = Color.argb(35, Color.red(accentColor), Color.green(accentColor), Color.blue(accentColor));
+            valBg.setColor(valBgColor);
+            valBg.setStroke(dpToPx(1), Color.argb(80, Color.red(accentColor), Color.green(accentColor), Color.blue(accentColor)));
+            mValueContainer.setBackground(valBg);
+        }
+
+        styleQuickStepButton(mBtnMinus, accentColor);
+        styleQuickStepButton(mBtnPlus, accentColor);
+
+        if (mBtnMinus != null) {
+            mBtnMinus.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    animateStepButton(v);
+                    int step = mStepValue > 0 ? mStepValue : 1;
+                    int currentVal = getValueFromProgress(mSeekBar.getProgress());
+                    int nextVal = clipValue(currentVal - step);
+                    mSeekBar.setProgress(getProgressFromValue(nextVal));
+                }
+            });
+        }
+
+        if (mBtnPlus != null) {
+            mBtnPlus.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    animateStepButton(v);
+                    int step = mStepValue > 0 ? mStepValue : 1;
+                    int currentVal = getValueFromProgress(mSeekBar.getProgress());
+                    int nextVal = clipValue(currentVal + step);
+                    mSeekBar.setProgress(getProgressFromValue(nextVal));
+                }
+            });
+        }
+
         mSeekBar.setMax(mMaxValue - mMinValue);
         mSeekBar.setOnSeekBarChangeListener(this);
-        mValueView = (TextView)view.findViewById(R.id.seek_bar_dialog_value);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            mSeekBar.setProgressTintList(ColorStateList.valueOf(accentColor));
+            mSeekBar.setThumbTintList(ColorStateList.valueOf(accentColor));
+        }
+
         return view;
+    }
+
+    private void styleQuickStepButton(TextView btn, int accentColor) {
+        if (btn == null) return;
+        GradientDrawable bg = new GradientDrawable();
+        bg.setShape(GradientDrawable.OVAL);
+        int btnBgColor = Color.argb(25, Color.red(accentColor), Color.green(accentColor), Color.blue(accentColor));
+        bg.setColor(btnBgColor);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            GradientDrawable mask = new GradientDrawable();
+            mask.setShape(GradientDrawable.OVAL);
+            mask.setColor(0xFFFFFFFF);
+            RippleDrawable ripple = new RippleDrawable(ColorStateList.valueOf(Color.argb(60, Color.red(accentColor), Color.green(accentColor), Color.blue(accentColor))), bg, mask);
+            btn.setBackground(ripple);
+        } else {
+            btn.setBackground(bg);
+        }
+    }
+
+    private void animateStepButton(View v) {
+        v.animate().scaleX(0.85f).scaleY(0.85f).setDuration(80)
+                .withEndAction(new Runnable() {
+                    @Override
+                    public void run() {
+                        v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(120).start();
+                    }
+                }).start();
     }
 
     private int getProgressFromValue(final int value) {

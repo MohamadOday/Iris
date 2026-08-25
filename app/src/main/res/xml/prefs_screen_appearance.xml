@@ -24,6 +24,11 @@
         android:key="screen_theme"
         android:title="@string/settings_screen_theme" />
     <SwitchPreference
+        android:key="pref_material_you_auto_color"
+        android:title="Material You Dynamic Color"
+        android:summary="Automatically adapt keyboard background and accents to system wallpaper theme"
+        android:defaultValue="true" />
+    <SwitchPreference
         android:key="pref_amoled_dark_mode"
         android:title="AMOLED Black Mode"
         android:summary="Use pure black background in dark theme"

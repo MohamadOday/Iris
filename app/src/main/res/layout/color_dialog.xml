@@ -3,6 +3,7 @@
 /*
 **
 ** Copyright 2012, The Android Open Source Project
+** Copyright 2026 Iris Keyboard Project
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
 ** you may not use this file except in compliance with the License.
@@ -18,37 +19,161 @@
 */
 -->
 
-<LinearLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        android:orientation="vertical"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="10dp">
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:fillViewport="true">
+
     <LinearLayout
-        android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_horizontal"
-        android:layout_margin="10dp">
-        <TextView android:id="@+id/seek_bar_dialog_value"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Live Color Preview Card -->
+        <LinearLayout
+            android:id="@+id/color_preview_card"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:elevation="2dp"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:id="@+id/seek_bar_dialog_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.08"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:paddingTop="6dp"
+                android:paddingBottom="6dp" />
+        </LinearLayout>
+
+        <!-- Quick Palette Presets -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="QUICK PALETTES"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:textColor="@color/settings_accent"
+            android:letterSpacing="0.06"
+            android:layout_marginBottom="8dp" />
+
+        <HorizontalScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textAlignment="center"
-            android:textSize="20sp"/>
+            android:scrollbars="none"
+            android:layout_marginBottom="16dp">
+
+            <LinearLayout
+                android:id="@+id/color_presets_container"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical" />
+        </HorizontalScrollView>
+
+        <!-- Channel Sliders -->
+        <!-- RED CHANNEL -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="4dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="RED"
+                android:textColor="#EF4444"
+                android:textStyle="bold"
+                android:textSize="12sp"
+                android:minWidth="44dp" />
+
+            <SeekBar
+                android:id="@+id/seek_bar_dialog_bar_red"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+
+            <TextView
+                android:id="@+id/color_red_val"
+                android:layout_width="32dp"
+                android:layout_height="wrap_content"
+                android:textColor="@color/settings_text_primary"
+                android:textSize="12sp"
+                android:gravity="end" />
+        </LinearLayout>
+
+        <!-- GREEN CHANNEL -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="4dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="GREEN"
+                android:textColor="#10B981"
+                android:textStyle="bold"
+                android:textSize="12sp"
+                android:minWidth="44dp" />
+
+            <SeekBar
+                android:id="@+id/seek_bar_dialog_bar_green"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+
+            <TextView
+                android:id="@+id/color_green_val"
+                android:layout_width="32dp"
+                android:layout_height="wrap_content"
+                android:textColor="@color/settings_text_primary"
+                android:textSize="12sp"
+                android:gravity="end" />
+        </LinearLayout>
+
+        <!-- BLUE CHANNEL -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="4dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="BLUE"
+                android:textColor="#3B82F6"
+                android:textStyle="bold"
+                android:textSize="12sp"
+                android:minWidth="44dp" />
+
+            <SeekBar
+                android:id="@+id/seek_bar_dialog_bar_blue"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+
+            <TextView
+                android:id="@+id/color_blue_val"
+                android:layout_width="32dp"
+                android:layout_height="wrap_content"
+                android:textColor="@color/settings_text_primary"
+                android:textSize="12sp"
+                android:gravity="end" />
+        </LinearLayout>
+
     </LinearLayout>
-    <SeekBar
-        android:id="@+id/seek_bar_dialog_bar_red"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="10dp"/>
-    <SeekBar
-        android:id="@+id/seek_bar_dialog_bar_green"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="10dp"/>
-    <SeekBar
-        android:id="@+id/seek_bar_dialog_bar_blue"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="10dp"/>
-</LinearLayout>
+</ScrollView>

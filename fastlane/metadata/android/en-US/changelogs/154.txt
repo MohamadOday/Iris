@@ -1,0 +1,5 @@
+- Add Material You dynamic auto keyboard coloring mode.
+- Redesign settings screens with modern Material You cards and dialogs.
+- Restore live switch soundpack scraper and download engine.
+- Fix AI Copilot toolbar sync and vibrator initialization.
+- Modernize About screen layout and polish Easter Egg.

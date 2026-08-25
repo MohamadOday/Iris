@@ -25,7 +25,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
-import nabu.iris.keyboard.latin.RichInputMethodManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.Preference;
@@ -47,6 +46,7 @@ import java.util.Set;
 
 import nabu.iris.keyboard.R;
 import nabu.iris.keyboard.compat.PreferenceManagerCompat;
+import nabu.iris.keyboard.latin.RichInputMethodManager;
 import nabu.iris.keyboard.latin.utils.ApplicationUtils;
 
 public final class SettingsFragment extends InputMethodSettingsFragment {
@@ -69,7 +69,7 @@ public final class SettingsFragment extends InputMethodSettingsFragment {
             public boolean onPreferenceClick(Preference preference) {
                 new android.app.AlertDialog.Builder(getActivity())
                         .setTitle(R.string.privacy_policy)
-                        .setMessage("We do not store your data.")
+                        .setMessage("Iris Keyboard respects your privacy. All keystrokes, personal dictionary entries, and soundpacks are processed completely on your device.\n\nOptional cloud AI tools only send the specific prompt you submit when explicitly triggered.")
                         .setPositiveButton(android.R.string.ok, null)
                         .show();
                 return true;
@@ -105,6 +105,12 @@ public final class SettingsFragment extends InputMethodSettingsFragment {
                 return true;
             }
         });
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        SettingsActivity.stylePreferenceFragment(this);
     }
 
     private void openUrl(String uri) {
@@ -287,74 +293,117 @@ public final class SettingsFragment extends InputMethodSettingsFragment {
         android.view.LayoutInflater inflater = getActivity().getLayoutInflater();
         android.view.View dialogView = inflater.inflate(R.layout.about_dialog, null);
         
-        android.widget.TextView versionText = dialogView.findViewById(R.id.about_version_text);
+        android.widget.TextView versionChip = dialogView.findViewById(R.id.about_version_chip);
+        android.view.View pillarsCard = dialogView.findViewById(R.id.about_pillars_card);
+        android.view.View devCard = dialogView.findViewById(R.id.about_dev_card);
         android.widget.TextView githubBtn = dialogView.findViewById(R.id.about_github_btn);
         android.widget.TextView telegramBtn = dialogView.findViewById(R.id.about_telegram_btn);
         android.widget.TextView websiteBtn = dialogView.findViewById(R.id.about_website_btn);
-        android.view.View homelandRow = dialogView.findViewById(R.id.about_homeland_row);
         final android.view.View easterEggCard = dialogView.findViewById(R.id.about_easter_egg_card);
-        final android.widget.TextView hintText = dialogView.findViewById(R.id.about_easter_egg_hint);
         
-        String verName = nabu.iris.keyboard.latin.utils.ApplicationUtils.getVersionName(getActivity());
-        versionText.setText("Version " + verName);
+        boolean isDark = (getResources().getConfiguration().uiMode & android.content.res.Configuration.UI_MODE_NIGHT_MASK)
+                == android.content.res.Configuration.UI_MODE_NIGHT_YES;
+        android.content.SharedPreferences prefs = nabu.iris.keyboard.compat.PreferenceManagerCompat.getDeviceSharedPreferences(getActivity());
+        boolean isAmoled = isDark && prefs.getBoolean("pref_amoled_dark_mode", false);
         
-        githubBtn.setOnClickListener(new android.view.View.OnClickListener() {
-            @Override
-            public void onClick(android.view.View v) {
-                openUrl("https://github.com/MohamadOday");
-            }
-        });
+        int cardBgColor = isAmoled ? 0xFF121214 : getResources().getColor(R.color.settings_card_bg);
+        int cardStroke = isAmoled ? 0xFF28282B : getResources().getColor(R.color.settings_card_stroke);
+        int accentColor = Settings.getMaterialYouAccentColor(getActivity());
         
-        telegramBtn.setOnClickListener(new android.view.View.OnClickListener() {
-            @Override
-            public void onClick(android.view.View v) {
-                openUrl("https://t.me/bn3di");
-            }
-        });
+        // Style Version Chip
+        if (versionChip != null) {
+            String verName = nabu.iris.keyboard.latin.utils.ApplicationUtils.getVersionName(getActivity());
+            versionChip.setText("v" + verName + " • Open Source");
+            versionChip.setTextColor(accentColor);
+            android.graphics.drawable.GradientDrawable chipBg = new android.graphics.drawable.GradientDrawable();
+            chipBg.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
+            chipBg.setCornerRadius(dpToPx(12));
+            int chipTint = android.graphics.Color.argb(35, android.graphics.Color.red(accentColor),
+                    android.graphics.Color.green(accentColor), android.graphics.Color.blue(accentColor));
+            chipBg.setColor(chipTint);
+            versionChip.setBackground(chipBg);
+        }
         
-        websiteBtn.setOnClickListener(new android.view.View.OnClickListener() {
-            @Override
-            public void onClick(android.view.View v) {
-                openUrl("https://bn3di.is-a.dev");
-            }
-        });
+        // Style Cards
+        android.graphics.drawable.GradientDrawable cardDrawable = new android.graphics.drawable.GradientDrawable();
+        cardDrawable.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
+        cardDrawable.setCornerRadius(dpToPx(16));
+        cardDrawable.setColor(cardBgColor);
+        if (cardStroke != 0) cardDrawable.setStroke(dpToPx(1), cardStroke);
         
+        if (pillarsCard != null) pillarsCard.setBackground(cardDrawable);
+        if (devCard != null) devCard.setBackground(cardDrawable);
+        
+        // Style Buttons
+        applyActionButtonStyle(githubBtn, cardStroke, accentColor);
+        applyActionButtonStyle(telegramBtn, cardStroke, accentColor);
+        applyActionButtonStyle(websiteBtn, cardStroke, accentColor);
+        
+        if (githubBtn != null) {
+            githubBtn.setOnClickListener(v -> openUrl("https://github.com/MohamadOday"));
+        }
+        if (telegramBtn != null) {
+            telegramBtn.setOnClickListener(v -> openUrl("https://t.me/bn3di"));
+        }
+        if (websiteBtn != null) {
+            websiteBtn.setOnClickListener(v -> openUrl("https://bn3di.is-a.dev"));
+        }
+        
+        // Easter Egg: Tap version chip 5 times
         final int[] tapCount = {0};
-        android.view.View.OnClickListener easterEggTrigger = new android.view.View.OnClickListener() {
-            @Override
-            public void onClick(android.view.View v) {
-                if (easterEggCard.getVisibility() == android.view.View.VISIBLE) {
-                    return;
-                }
+        if (versionChip != null) {
+            versionChip.setOnClickListener(v -> {
+                if (easterEggCard.getVisibility() == android.view.View.VISIBLE) return;
                 tapCount[0]++;
-                int remaining = 5 - tapCount[0];
-                if (remaining > 0) {
-                    android.widget.Toast.makeText(getActivity(), 
-                            "Tap " + remaining + " more times for a secret...", 
-                            android.widget.Toast.LENGTH_SHORT).show();
-                } else {
-                    hintText.setText("You unlocked the Cradle of Civilization! 🇮🇶");
-                    easterEggCard.setVisibility(android.view.View.VISIBLE);
-                    easterEggCard.setAlpha(0f);
-                    easterEggCard.setScaleX(0.8f);
-                    easterEggCard.setScaleY(0.8f);
-                    easterEggCard.animate()
-                            .alpha(1f)
-                            .scaleX(1.0f)
-                            .scaleY(1.0f)
-                            .setDuration(500)
-                            .setInterpolator(new android.view.animation.OvershootInterpolator())
-                            .start();
+                if (tapCount[0] >= 5) {
+                    if (easterEggCard != null) {
+                        android.graphics.drawable.GradientDrawable eggBg = new android.graphics.drawable.GradientDrawable();
+                        eggBg.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
+                        eggBg.setCornerRadius(dpToPx(16));
+                        eggBg.setColor(cardBgColor);
+                        eggBg.setStroke(dpToPx(1.5f), accentColor);
+                        easterEggCard.setBackground(eggBg);
+                        
+                        easterEggCard.setVisibility(android.view.View.VISIBLE);
+                        easterEggCard.setAlpha(0f);
+                        easterEggCard.setScaleX(0.85f);
+                        easterEggCard.setScaleY(0.85f);
+                        easterEggCard.animate()
+                                .alpha(1f)
+                                .scaleX(1.0f)
+                                .scaleY(1.0f)
+                                .setDuration(400)
+                                .setInterpolator(new android.view.animation.OvershootInterpolator())
+                                .start();
+                    }
+                    android.widget.Toast.makeText(getActivity(), "🏛️ Mesopotamia Heritage Unlocked!", android.widget.Toast.LENGTH_SHORT).show();
                 }
-            }
-        };
-        
-        homelandRow.setOnClickListener(easterEggTrigger);
-        versionText.setOnClickListener(easterEggTrigger);
+            });
+        }
         
         new android.app.AlertDialog.Builder(getActivity())
                 .setView(dialogView)
-                .setPositiveButton(android.R.string.ok, null)
+                .setPositiveButton("Close", null)
                 .show();
+    }
+    
+    private void applyActionButtonStyle(android.widget.TextView btn, int strokeColor, int accentColor) {
+        if (btn == null) return;
+        android.graphics.drawable.GradientDrawable bg = new android.graphics.drawable.GradientDrawable();
+        bg.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
+        bg.setCornerRadius(dpToPx(10));
+        int tint = android.graphics.Color.argb(20, android.graphics.Color.red(accentColor),
+                android.graphics.Color.green(accentColor), android.graphics.Color.blue(accentColor));
+        bg.setColor(tint);
+        if (strokeColor != 0) bg.setStroke(dpToPx(1), strokeColor);
+        btn.setBackground(bg);
+    }
+    
+    private int dpToPx(float dp) {
+        return (int) android.util.TypedValue.applyDimension(
+                android.util.TypedValue.COMPLEX_UNIT_DIP,
+                dp,
+                getResources().getDisplayMetrics()
+        );
     }
 }

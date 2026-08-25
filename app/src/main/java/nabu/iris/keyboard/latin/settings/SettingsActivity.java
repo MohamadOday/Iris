@@ -23,28 +23,31 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.ColorStateList;
+import android.database.DataSetObserver;
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.RippleDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
+import android.preference.PreferenceCategory;
+import android.preference.PreferenceFragment;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.view.WindowInsets;
+import android.view.WindowManager;
 import android.view.inputmethod.InputMethodInfo;
 import android.view.inputmethod.InputMethodManager;
-
+import android.widget.ImageView;
 import android.widget.ListAdapter;
-import android.widget.WrapperListAdapter;
 import android.widget.ListView;
-import android.database.DataSetObserver;
-import android.graphics.drawable.GradientDrawable;
 import android.widget.TextView;
-import android.preference.PreferenceCategory;
-import android.preference.PreferenceFragment;
-import android.util.TypedValue;
-import android.view.Window;
-import android.view.WindowManager;
+import android.widget.WrapperListAdapter;
 
 import nabu.iris.keyboard.R;
 import nabu.iris.keyboard.latin.utils.FragmentUtils;
@@ -87,10 +90,6 @@ public class SettingsActivity extends PreferenceActivity {
         }
     }
 
-    /**
-     * Check if this IME is enabled in the system.
-     * @return whether this IME is enabled in the system.
-     */
     private boolean isInputMethodOfThisImeEnabled() {
         final InputMethodManager imm =
                 (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -107,21 +106,19 @@ public class SettingsActivity extends PreferenceActivity {
     protected void onCreate(final Bundle savedState) {
         super.onCreate(savedState);
 
-        // Determine dark theme dynamically from system configuration
         boolean isDarkTheme = (getResources().getConfiguration().uiMode & android.content.res.Configuration.UI_MODE_NIGHT_MASK)
                 == android.content.res.Configuration.UI_MODE_NIGHT_YES;
         android.content.SharedPreferences prefs = nabu.iris.keyboard.compat.PreferenceManagerCompat.getDeviceSharedPreferences(this);
         boolean isAmoled = isDarkTheme && prefs.getBoolean("pref_amoled_dark_mode", false);
 
-        // Programmatically style Status Bar and Navigation Bar for premium blend
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             Window window = getWindow();
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-            
+
             int themeColor = isAmoled ? 0xFF000000 : getResources().getColor(R.color.settings_bg);
             window.setStatusBarColor(themeColor);
             window.setNavigationBarColor(themeColor);
-            
+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 int flags = window.getDecorView().getSystemUiVisibility();
                 if (!isDarkTheme) {
@@ -140,33 +137,32 @@ public class SettingsActivity extends PreferenceActivity {
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            final View container = (View) getListView().getParent().getParent();
-            // com.android.internal.R.id.prefs_container in
-            // https://android.googlesource.com/platform/frameworks/base/+/refs/heads/main/core/res/res/layout/preference_list_content.xml
-            container.setOnApplyWindowInsetsListener((view, windowInsets) -> {
-                android.graphics.Insets insets = windowInsets.getInsets(WindowInsets.Type.systemBars());
-                ViewGroup.MarginLayoutParams mlp = (ViewGroup.MarginLayoutParams) view.getLayoutParams();
-                mlp.topMargin = insets.top;
-                mlp.leftMargin = insets.left;
-                mlp.bottomMargin = insets.bottom;
-                mlp.rightMargin = insets.right;
-                view.setLayoutParams(mlp);
-                return WindowInsets.CONSUMED;
-            });
+            try {
+                final View container = (View) getListView().getParent().getParent();
+                container.setOnApplyWindowInsetsListener((view, windowInsets) -> {
+                    android.graphics.Insets insets = windowInsets.getInsets(WindowInsets.Type.systemBars());
+                    ViewGroup.MarginLayoutParams mlp = (ViewGroup.MarginLayoutParams) view.getLayoutParams();
+                    mlp.topMargin = insets.top;
+                    mlp.leftMargin = insets.left;
+                    mlp.bottomMargin = insets.bottom;
+                    mlp.rightMargin = insets.right;
+                    view.setLayoutParams(mlp);
+                    return WindowInsets.CONSUMED;
+                });
+            } catch (Exception e) {
+                // Ignore
+            }
         }
 
         final ActionBar actionBar = getActionBar();
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setHomeButtonEnabled(true);
-            
-            // Premium custom ActionBar background color matching settings_bg
+
             int actionBarColor = isAmoled ? 0xFF000000 : getResources().getColor(R.color.settings_bg);
             GradientDrawable abBg = new GradientDrawable();
             abBg.setColor(actionBarColor);
             actionBar.setBackgroundDrawable(abBg);
-            
-            // Remove ActionBar bottom shadow for sleek clean flat card design
             actionBar.setElevation(0);
         }
     }
@@ -199,7 +195,7 @@ public class SettingsActivity extends PreferenceActivity {
 
     public static void stylePreferenceFragment(PreferenceFragment fragment) {
         if (fragment == null || fragment.getActivity() == null) return;
-        
+
         final Context context = fragment.getActivity();
         if (fragment.getView() == null) return;
         final ListView listView = (ListView) fragment.getView().findViewById(android.R.id.list);
@@ -209,22 +205,21 @@ public class SettingsActivity extends PreferenceActivity {
                 == android.content.res.Configuration.UI_MODE_NIGHT_YES;
         android.content.SharedPreferences prefs = nabu.iris.keyboard.compat.PreferenceManagerCompat.getDeviceSharedPreferences(context);
         boolean isAmoled = isDarkTheme && prefs.getBoolean("pref_amoled_dark_mode", false);
-        
-        // Remove standard line dividers and set modern card spacing padding
+
         listView.setDivider(null);
         listView.setDividerHeight(0);
-        
+        listView.setSelector(new android.graphics.drawable.ColorDrawable(Color.TRANSPARENT));
+
         int paddingSide = (int) TypedValue.applyDimension(
                 TypedValue.COMPLEX_UNIT_DIP, 16, context.getResources().getDisplayMetrics());
         int paddingTop = (int) TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_DIP, 16, context.getResources().getDisplayMetrics());
-        listView.setPadding(paddingSide, paddingTop, paddingSide, paddingTop);
+                TypedValue.COMPLEX_UNIT_DIP, 12, context.getResources().getDisplayMetrics());
+        listView.setPadding(paddingSide, paddingTop, paddingSide, paddingTop + paddingSide);
         listView.setClipToPadding(false);
 
-        // Make background a solid gorgeous color matching settings_bg
         int bgColor = isAmoled ? 0xFF000000 : context.getResources().getColor(R.color.settings_bg);
         listView.setBackgroundColor(bgColor);
-        
+
         try {
             View parent = (View) listView.getParent();
             if (parent != null) {
@@ -235,10 +230,9 @@ public class SettingsActivity extends PreferenceActivity {
                 }
             }
         } catch (Exception e) {
-            // Ignore if layout differs
+            // Ignore
         }
 
-        // Apply our gorgeous CardPreferenceAdapter wrap dynamically
         ListAdapter currentAdapter = listView.getAdapter();
         if (currentAdapter != null && !(currentAdapter instanceof CardPreferenceAdapter)) {
             listView.setAdapter(new CardPreferenceAdapter(currentAdapter, context, isDarkTheme));
@@ -351,27 +345,23 @@ public class SettingsActivity extends PreferenceActivity {
             int textSecondary = context.getResources().getColor(R.color.settings_text_secondary);
 
             if (item instanceof PreferenceCategory) {
-                // Style Category Header
                 view.setBackground(null);
-                view.setPadding(dpToPx(context, 16), dpToPx(context, 20), dpToPx(context, 16), dpToPx(context, 8)); // Aligned Category
+                view.setPadding(dpToPx(context, 12), dpToPx(context, 18), dpToPx(context, 12), dpToPx(context, 6));
                 
-                // Find title TextView and make it dynamic accent colored
                 TextView titleView = findTitleTextView(view);
                 if (titleView != null) {
                     titleView.setTextColor(accentColor);
-                    titleView.setTextSize(13.5f);
-                    titleView.setTypeface(android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL));
+                    titleView.setTextSize(12.0f);
+                    titleView.setTypeface(android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.BOLD));
                     titleView.setAllCaps(true);
                     titleView.setLetterSpacing(0.06f);
                 }
                 return;
             }
 
-            // Normal Preference Card Styling
             boolean isFirst = false;
             boolean isLast = false;
 
-            // Check if it's the first in a group
             if (position == 0) {
                 isFirst = true;
             } else {
@@ -385,7 +375,6 @@ public class SettingsActivity extends PreferenceActivity {
                 }
             }
 
-            // Check if it's the last in a group
             if (position == mOriginal.getCount() - 1) {
                 isLast = true;
             } else {
@@ -399,32 +388,42 @@ public class SettingsActivity extends PreferenceActivity {
                 }
             }
 
-            // Create shape
-            GradientDrawable cardBg = new GradientDrawable();
-            cardBg.setShape(GradientDrawable.RECTANGLE);
-            cardBg.setColor(cardColor);
-
-            if (strokeColor != 0) {
-                cardBg.setStroke(dpToPx(context, 1), strokeColor);
-            }
-
-            // Large rounded corners matching Material 3 cards (20dp)
-            float r = dpToPx(context, 20);
+            float r = dpToPx(context, 16);
+            float[] cornerRadii;
             if (isFirst && isLast) {
-                cardBg.setCornerRadii(new float[]{r, r, r, r, r, r, r, r});
+                cornerRadii = new float[]{r, r, r, r, r, r, r, r};
             } else if (isFirst) {
-                cardBg.setCornerRadii(new float[]{r, r, r, r, 0, 0, 0, 0});
+                cornerRadii = new float[]{r, r, r, r, 0, 0, 0, 0};
             } else if (isLast) {
-                cardBg.setCornerRadii(new float[]{0, 0, 0, 0, r, r, r, r});
+                cornerRadii = new float[]{0, 0, 0, 0, r, r, r, r};
             } else {
-                cardBg.setCornerRadii(new float[]{0, 0, 0, 0, 0, 0, 0, 0});
+                cornerRadii = new float[]{0, 0, 0, 0, 0, 0, 0, 0};
             }
-            view.setBackground(cardBg);
 
-            // Add clean padding inside card item
-            view.setPadding(dpToPx(context, 16), dpToPx(context, 15), dpToPx(context, 16), dpToPx(context, 15));
+            GradientDrawable normalBg = new GradientDrawable();
+            normalBg.setShape(GradientDrawable.RECTANGLE);
+            normalBg.setColor(cardColor);
+            if (strokeColor != 0) {
+                normalBg.setStroke(dpToPx(context, 1), strokeColor);
+            }
+            normalBg.setCornerRadii(cornerRadii);
 
-            // Set beautiful card margins
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                GradientDrawable maskBg = new GradientDrawable();
+                maskBg.setShape(GradientDrawable.RECTANGLE);
+                maskBg.setColor(0xFFFFFFFF);
+                maskBg.setCornerRadii(cornerRadii);
+
+                int rippleColor = getTranslucentColor(accentColor, isDarkTheme ? 25 : 18);
+                ColorStateList rippleCsl = ColorStateList.valueOf(rippleColor);
+                RippleDrawable ripple = new RippleDrawable(rippleCsl, normalBg, maskBg);
+                view.setBackground(ripple);
+            } else {
+                view.setBackground(normalBg);
+            }
+
+            view.setPadding(dpToPx(context, 16), dpToPx(context, 14), dpToPx(context, 16), dpToPx(context, 14));
+
             ViewGroup.LayoutParams layoutParams = view.getLayoutParams();
             ViewGroup.MarginLayoutParams marginParams;
             if (layoutParams instanceof ViewGroup.MarginLayoutParams) {
@@ -432,19 +431,14 @@ public class SettingsActivity extends PreferenceActivity {
             } else {
                 marginParams = new ViewGroup.MarginLayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             }
-            int marginTop = isFirst ? dpToPx(context, 8) : 0;
+            int marginTop = isFirst ? dpToPx(context, 4) : 0;
             int marginBottom = isLast ? dpToPx(context, 8) : dpToPx(context, 1);
             marginParams.setMargins(0, marginTop, 0, marginBottom);
             view.setLayoutParams(marginParams);
 
-            // Style Titles and Summaries recursively inside the card item
             styleTexts(view, textPrimary, textSecondary);
-
-            // Dynamic tinting for switches and checkboxes
+            styleIcons(view, accentColor);
             styleWidgets(view, accentColor);
-
-            // Remove empty icon spacing to ensure text aligns perfectly with card boundary
-            removeIconFrames(view);
         }
 
         private TextView findTitleTextView(View view) {
@@ -469,17 +463,38 @@ public class SettingsActivity extends PreferenceActivity {
                 TextView tv = (TextView) view;
                 if (tv.getId() == android.R.id.title) {
                     tv.setTextColor(textPrimary);
-                    tv.setTextSize(16f);
-                    tv.setTypeface(android.graphics.Typeface.create("sans-serif", android.graphics.Typeface.NORMAL));
+                    tv.setTextSize(15.5f);
+                    tv.setTypeface(android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL));
                 } else if (tv.getId() == android.R.id.summary) {
                     tv.setTextColor(textSecondary);
-                    tv.setTextSize(13.5f);
-                    tv.setPadding(0, dpToPx(mContext, 4), 0, 0);
+                    tv.setTextSize(13.0f);
+                    tv.setPadding(0, dpToPx(mContext, 3), 0, 0);
                 }
             } else if (view instanceof ViewGroup) {
                 ViewGroup vg = (ViewGroup) view;
                 for (int i = 0; i < vg.getChildCount(); i++) {
                     styleTexts(vg.getChildAt(i), textPrimary, textSecondary);
+                }
+            }
+        }
+
+        private void styleIcons(View view, int accentColor) {
+            if (view instanceof ImageView) {
+                ImageView iv = (ImageView) view;
+                if (iv.getId() == android.R.id.icon) {
+                    if (iv.getDrawable() != null) {
+                        iv.setVisibility(View.VISIBLE);
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                            iv.setImageTintList(ColorStateList.valueOf(accentColor));
+                        }
+                    } else {
+                        iv.setVisibility(View.GONE);
+                    }
+                }
+            } else if (view instanceof ViewGroup) {
+                ViewGroup vg = (ViewGroup) view;
+                for (int i = 0; i < vg.getChildCount(); i++) {
+                    styleIcons(vg.getChildAt(i), accentColor);
                 }
             }
         }
@@ -491,19 +506,19 @@ public class SettingsActivity extends PreferenceActivity {
                     android.widget.Switch sw = (android.widget.Switch) cb;
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                         int trackColor = getTranslucentColor(accentColor, 40);
-                        sw.setThumbTintList(android.content.res.ColorStateList.valueOf(accentColor));
-                        sw.setTrackTintList(android.content.res.ColorStateList.valueOf(trackColor));
+                        sw.setThumbTintList(ColorStateList.valueOf(accentColor));
+                        sw.setTrackTintList(ColorStateList.valueOf(trackColor));
                     }
                 } else {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                        cb.setButtonTintList(android.content.res.ColorStateList.valueOf(accentColor));
+                        cb.setButtonTintList(ColorStateList.valueOf(accentColor));
                     }
                 }
             } else if (view instanceof android.widget.SeekBar) {
                 android.widget.SeekBar sb = (android.widget.SeekBar) view;
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    sb.setProgressTintList(android.content.res.ColorStateList.valueOf(accentColor));
-                    sb.setThumbTintList(android.content.res.ColorStateList.valueOf(accentColor));
+                    sb.setProgressTintList(ColorStateList.valueOf(accentColor));
+                    sb.setThumbTintList(ColorStateList.valueOf(accentColor));
                 }
             } else if (view instanceof ViewGroup) {
                 ViewGroup vg = (ViewGroup) view;
@@ -513,22 +528,9 @@ public class SettingsActivity extends PreferenceActivity {
             }
         }
 
-        private void removeIconFrames(View view) {
-            if (view == null) return;
-            int id = view.getId();
-            if (id == android.R.id.icon || id == android.R.id.icon_frame) {
-                view.setVisibility(View.GONE);
-            } else if (view instanceof ViewGroup) {
-                ViewGroup vg = (ViewGroup) view;
-                for (int i = 0; i < vg.getChildCount(); i++) {
-                    removeIconFrames(vg.getChildAt(i));
-                }
-            }
-        }
-
         private int getTranslucentColor(int color, int alphaPercent) {
             int alpha = (int) (255 * (alphaPercent / 100.0));
-            return android.graphics.Color.argb(alpha, android.graphics.Color.red(color), android.graphics.Color.green(color), android.graphics.Color.blue(color));
+            return Color.argb(alpha, Color.red(color), Color.green(color), Color.blue(color));
         }
     }
 }
