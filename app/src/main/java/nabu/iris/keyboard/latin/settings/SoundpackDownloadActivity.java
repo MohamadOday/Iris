@@ -37,11 +37,13 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
@@ -56,7 +58,9 @@ import java.util.zip.ZipInputStream;
 
 import nabu.iris.keyboard.R;
 import nabu.iris.keyboard.compat.PreferenceManagerCompat;
+import nabu.iris.keyboard.latin.AudioAndHapticFeedbackManager;
 import nabu.iris.keyboard.latin.AudioDecoderSlicer;
+import nabu.iris.keyboard.latin.settings.SettingsValues;
 
 public class SoundpackDownloadActivity extends Activity {
     private static final String TAG = "SoundpackDownload";
@@ -128,7 +132,7 @@ public class SoundpackDownloadActivity extends Activity {
         mThemeBgColor = mIsAmoled ? 0xFF000000 : getResources().getColor(R.color.settings_bg);
         mThemeCardColor = mIsAmoled ? 0xFF121214 : getResources().getColor(R.color.settings_card_bg);
         mThemeStrokeColor = mIsAmoled ? 0xFF28282B : getResources().getColor(R.color.settings_card_stroke);
-        mThemeAccentColor = getResources().getColor(R.color.settings_accent);
+        mThemeAccentColor = Settings.getMaterialYouAccentColor(this);
         mThemeTextPrimary = getResources().getColor(R.color.settings_text_primary);
         mThemeTextSecondary = getResources().getColor(R.color.settings_text_secondary);
 
@@ -387,17 +391,17 @@ public class SoundpackDownloadActivity extends Activity {
                 Toast.makeText(this, "Please enter a valid URL", Toast.LENGTH_SHORT).show();
                 return;
             }
-            String name = "Imported_Pack";
+            String name = "Imported Pack";
             int lastSlash = url.lastIndexOf('/');
             if (lastSlash != -1 && lastSlash < url.length() - 1) {
                 String sub = url.substring(lastSlash + 1);
                 if (sub.endsWith(".zip")) {
-                    name = sub.substring(0, sub.length() - 4).replace("-", "_").replace(" ", "_");
+                    name = sub.substring(0, sub.length() - 4).replace("-", " ").replace("_", " ");
                 } else if (!sub.isEmpty()) {
-                    name = sub.replace("-", "_").replace(" ", "_");
+                    name = sub.replace("-", " ").replace("_", " ");
                 }
             }
-            startDownload(new SoundpackItem(name, name.replace("_", " "), url, "Custom Import"));
+            startDownload(new SoundpackItem("custom_" + System.currentTimeMillis(), name, url, "Custom Import"));
         });
 
         importRow.addView(importBtn);
@@ -474,7 +478,7 @@ public class SoundpackDownloadActivity extends Activity {
                                 }
                             }
                         } else {
-                            String displayName = id.replace("_", " ");
+                            String displayName = readLocalSoundpackName(file, id);
                             SoundpackItem localItem = new SoundpackItem(id, displayName, "", "Custom");
                             localItem.status = "Installed";
                             mSoundpacks.add(localItem);
@@ -487,6 +491,58 @@ public class SoundpackDownloadActivity extends Activity {
         mFilteredSoundpacks = new ArrayList<>(mSoundpacks);
         updateCatalogList();
         updateStats();
+    }
+
+    private String readLocalSoundpackName(File dir, String folderName) {
+        File nameFile = new File(dir, "name.txt");
+        if (nameFile.exists()) {
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(nameFile), "UTF-8"))) {
+                String line = br.readLine();
+                if (line != null && !line.trim().isEmpty()) {
+                    return line.trim();
+                }
+            } catch (Exception ignored) {}
+        }
+
+        File configFile = new File(dir, "config.json");
+        if (configFile.exists()) {
+            try (FileInputStream fis = new FileInputStream(configFile)) {
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                byte[] buffer = new byte[1024];
+                int len;
+                while ((len = fis.read(buffer)) != -1) {
+                    baos.write(buffer, 0, len);
+                }
+                JSONObject json = new JSONObject(baos.toString("UTF-8"));
+                String name = json.optString("name", "");
+                if (!name.trim().isEmpty()) {
+                    return name.trim();
+                }
+            } catch (Exception ignored) {}
+        }
+
+        String clean = folderName.replace("custom_sound_pack_", "")
+                .replace("sound_pack_", "")
+                .replace("custom-sound-pack-", "")
+                .replace("sound-pack-", "")
+                .replace("traveler-", "")
+                .replace("-", " ")
+                .replace("_", " ");
+
+        try {
+            long num = Long.parseLong(clean.trim());
+            return "Mechvibes Pack #" + (num % 1000);
+        } catch (Exception ignored) {}
+
+        String[] words = clean.split("\\s+");
+        StringBuilder sb = new StringBuilder();
+        for (String w : words) {
+            if (w.length() > 0) {
+                sb.append(Character.toUpperCase(w.charAt(0))).append(w.substring(1)).append(" ");
+            }
+        }
+        String res = sb.toString().trim();
+        return res.isEmpty() ? folderName : res;
     }
 
     private void updateStats() {
@@ -861,6 +917,12 @@ public class SoundpackDownloadActivity extends Activity {
         SharedPreferences prefs = PreferenceManagerCompat.getDeviceSharedPreferences(this);
         prefs.edit().putString("pref_keypress_soundpack", item.id).apply();
         Toast.makeText(this, item.name + " applied as active soundpack!", Toast.LENGTH_SHORT).show();
+
+        try {
+            SettingsValues settingsValues = new SettingsValues(prefs, getResources(), null);
+            AudioAndHapticFeedbackManager.getInstance().onSettingsChanged(settingsValues);
+        } catch (Exception ignored) {}
+
         updateCatalogList();
     }
 
@@ -1078,7 +1140,6 @@ public class SoundpackDownloadActivity extends Activity {
                             }
                         }
                     } else if (defines != null) {
-                        // Separate audio files format
                         Iterator<String> defineKeys = defines.keys();
                         while (defineKeys.hasNext()) {
                             String key = defineKeys.next();
@@ -1114,7 +1175,7 @@ public class SoundpackDownloadActivity extends Activity {
                     }
                 }
 
-                // Copy any remaining audio files to destDir
+                // Copy all audio files to destDir
                 File[] files = workDir.listFiles();
                 if (files != null) {
                     for (File f : files) {
@@ -1127,6 +1188,48 @@ public class SoundpackDownloadActivity extends Activity {
                         }
                     }
                 }
+
+                // Ensure standard fallback wav files exist in destDir
+                File[] destFiles = destDir.listFiles();
+                File firstWav = null;
+                if (destFiles != null) {
+                    for (File f : destFiles) {
+                        if (f.getName().endsWith(".wav")) {
+                            if (firstWav == null) firstWav = f;
+                            if (f.getName().equals("standard.wav")) {
+                                firstWav = f;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (firstWav != null) {
+                    File std = new File(destDir, "standard.wav");
+                    if (!std.exists()) copyFileDirectly(firstWav, std);
+                    File spc = new File(destDir, "spacebar.wav");
+                    if (!spc.exists()) copyFileDirectly(firstWav, spc);
+                    File del = new File(destDir, "delete.wav");
+                    if (!del.exists()) copyFileDirectly(firstWav, del);
+                    File ret = new File(destDir, "return.wav");
+                    if (!ret.exists()) copyFileDirectly(firstWav, ret);
+                }
+
+                // Write name.txt and config.json
+                File nameFile = new File(destDir, "name.txt");
+                FileOutputStream nameOut = new FileOutputStream(nameFile);
+                nameOut.write(mItem.name.getBytes("UTF-8"));
+                nameOut.close();
+
+                File confOutFile = new File(destDir, "config.json");
+                JSONObject infoJson = new JSONObject();
+                infoJson.put("name", mItem.name);
+                infoJson.put("id", mItem.id);
+                infoJson.put("type", mItem.type);
+                FileOutputStream confOut = new FileOutputStream(confOutFile);
+                confOut.write(infoJson.toString().getBytes("UTF-8"));
+                confOut.close();
+
             } catch (Exception e) {
                 Log.e(TAG, "Audio processing failed", e);
             }

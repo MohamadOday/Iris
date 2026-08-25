@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2014 The Android Open Source Project
  * Copyright (C) 2025 Raimondas Rimkus
- * Copyright (C) 2021 wittmane
+ * Copyright (C) 2026 Iris Keyboard Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,46 +23,60 @@ import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.media.AudioManager;
 import android.os.Bundle;
+import android.preference.Preference;
+
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.json.JSONObject;
 
 import nabu.iris.keyboard.R;
 import nabu.iris.keyboard.latin.AudioAndHapticFeedbackManager;
 
 /**
- * "Preferences" settings sub screen.
- *
- * This settings sub screen handles the following input preferences.
- * - Vibrate on keypress
- * - Keypress vibration duration
- * - Sound on keypress
- * - Keypress sound volume
- * - Popup on keypress
- * - Key long press delay
+ * "Keypress" settings sub screen.
  */
 public final class KeyPressSettingsFragment extends SubScreenFragment {
+    private static final Map<String, String> CURATED_PACK_NAMES = new HashMap<>();
+    static {
+        CURATED_PACK_NAMES.put("cherrymx_blue_pbt", "Cherry MX Blue");
+        CURATED_PACK_NAMES.put("cherrymx_brown_pbt", "Cherry MX Brown");
+        CURATED_PACK_NAMES.put("cherrymx_red_pbt", "Cherry MX Red");
+        CURATED_PACK_NAMES.put("cherrymx_black_abs", "Cherry MX Black");
+        CURATED_PACK_NAMES.put("holy_pandas", "Holy Pandas");
+        CURATED_PACK_NAMES.put("nk_creams", "NovelKeys Creams");
+        CURATED_PACK_NAMES.put("ibm_model_m_ssk", "IBM Model M SSK");
+        CURATED_PACK_NAMES.put("topre_realforce_87u", "Topre Realforce");
+        CURATED_PACK_NAMES.put("nk_sherbets", "NK Sherbets");
+        CURATED_PACK_NAMES.put("alps_blue", "Alps Blue Keyboard");
+    }
+
     @Override
     public void onCreate(final Bundle icicle) {
         super.onCreate(icicle);
         addPreferencesFromResource(R.xml.prefs_screen_key_press);
 
-        final Context context = getActivity();
-
-        // When we are called from the Settings application but we are not already running, some
-        // singleton and utility classes may not have been initialized.  We have to call
-        // initialization method of these classes here. See {@link LatinIME#onCreate()}.
-        AudioAndHapticFeedbackManager.init(context);
-
-        if (!AudioAndHapticFeedbackManager.getInstance().hasVibrator()) {
-            removePreference(Settings.PREF_VIBRATE_ON);
-        }
-
         setupKeypressSoundVolumeSettings();
-        setupKeypressSoundpackSettings();
         setupKeyLongpressTimeoutSettings();
+        setupKeypressSoundpackSettings();
     }
 
     @Override
     public void onResume() {
         super.onResume();
+        final Preference soundEffectPreference = findPreference(Settings.PREF_SOUND_ON);
+        if (soundEffectPreference != null) {
+            final SharedPreferences prefs = getSharedPreferences();
+            final Resources res = getResources();
+            setPreferenceEnabled(Settings.PREF_SOUND_ON, true);
+        }
         setupKeypressSoundpackSettings();
     }
 
@@ -82,7 +96,7 @@ public final class KeyPressSettingsFragment extends SubScreenFragment {
             }
 
             private int getPercentageFromValue(final float floatValue) {
-                return (int)(floatValue * PERCENTAGE_FLOAT);
+                return Math.round(floatValue * PERCENTAGE_FLOAT);
             }
 
             @Override
@@ -110,7 +124,7 @@ public final class KeyPressSettingsFragment extends SubScreenFragment {
                 if (value < 0) {
                     return res.getString(R.string.settings_system_default);
                 }
-                return Integer.toString(value);
+                return res.getString(R.string.abbreviation_unit_percent, value);
             }
 
             @Override
@@ -122,13 +136,13 @@ public final class KeyPressSettingsFragment extends SubScreenFragment {
     }
 
     private void setupKeyLongpressTimeoutSettings() {
-        final SharedPreferences prefs = getSharedPreferences();
-        final Resources res = getResources();
         final SeekBarDialogPreference pref = (SeekBarDialogPreference)findPreference(
                 Settings.PREF_KEY_LONGPRESS_TIMEOUT);
         if (pref == null) {
             return;
         }
+        final SharedPreferences prefs = getSharedPreferences();
+        final Resources res = getResources();
         pref.setInterface(new SeekBarDialogPreference.ValueProxy() {
             @Override
             public void writeValue(final int value, final String key) {
@@ -167,50 +181,28 @@ public final class KeyPressSettingsFragment extends SubScreenFragment {
             return;
         }
         final Context context = getActivity();
-        java.io.File soundpacksDir = context.getExternalFilesDir("soundpacks");
+        if (context == null) return;
+        File soundpacksDir = context.getExternalFilesDir("soundpacks");
         
-        java.util.List<String> names = new java.util.ArrayList<>();
-        java.util.List<String> values = new java.util.ArrayList<>();
+        List<String> names = new ArrayList<>();
+        List<String> values = new ArrayList<>();
 
-        // Add defaults first
-        names.add("iOS (Apple Inc. - Sampled)");
+        // Built-in Defaults
+        names.add("System Click (Standard)");
         values.add("default");
 
-        names.add("iOS Deep (Apple Inc. - Sampled)");
+        names.add("Bubble Wrap (Synthesized)");
         values.add("default_deep");
         
-        // Scan for user custom folders
+        // Scan for downloaded & custom soundpacks
         if (soundpacksDir != null && soundpacksDir.exists()) {
-            java.io.File[] dirs = soundpacksDir.listFiles(java.io.File::isDirectory);
+            File[] dirs = soundpacksDir.listFiles(File::isDirectory);
             if (dirs != null) {
-                for (java.io.File dir : dirs) {
+                for (File dir : dirs) {
                     String folderName = dir.getName();
-                    // Avoid duplicating builtin defaults
-                    if (!folderName.equals("default") &&
-                        !folderName.equals("default_deep")) {
-                        
-                        String displayName = null;
-                        java.io.File configFile = new java.io.File(dir, "config.json");
-                        if (configFile.exists()) {
-                            try {
-                                java.io.FileInputStream fis = new java.io.FileInputStream(configFile);
-                                java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
-                                byte[] buffer = new byte[1024];
-                                int len;
-                                while ((len = fis.read(buffer)) != -1) {
-                                    baos.write(buffer, 0, len);
-                                }
-                                fis.close();
-                                org.json.JSONObject json = new org.json.JSONObject(baos.toString("UTF-8"));
-                                displayName = json.optString("name");
-                            } catch (Exception e) {
-                                // ignore
-                            }
-                        }
-                        if (displayName == null || displayName.trim().isEmpty()) {
-                            displayName = folderName.replace("_", " ");
-                        }
-                        names.add("[Custom] " + displayName);
+                    if (!folderName.equals("default") && !folderName.equals("default_deep")) {
+                        String displayName = readSoundpackDisplayName(dir, folderName);
+                        names.add(displayName);
                         values.add(folderName);
                     }
                 }
@@ -234,12 +226,72 @@ public final class KeyPressSettingsFragment extends SubScreenFragment {
         });
     }
 
-    private void updateSoundpackSummary(android.preference.ListPreference pref, String value, java.util.List<String> names, java.util.List<String> values) {
+    private String readSoundpackDisplayName(File dir, String folderName) {
+        // 1. Check name.txt
+        File nameFile = new File(dir, "name.txt");
+        if (nameFile.exists()) {
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(nameFile), "UTF-8"))) {
+                String line = br.readLine();
+                if (line != null && !line.trim().isEmpty()) {
+                    return line.trim();
+                }
+            } catch (Exception ignored) {}
+        }
+
+        // 2. Check config.json
+        File configFile = new File(dir, "config.json");
+        if (configFile.exists()) {
+            try (FileInputStream fis = new FileInputStream(configFile)) {
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                byte[] buffer = new byte[1024];
+                int len;
+                while ((len = fis.read(buffer)) != -1) {
+                    baos.write(buffer, 0, len);
+                }
+                JSONObject json = new JSONObject(baos.toString("UTF-8"));
+                String name = json.optString("name", "");
+                if (!name.trim().isEmpty()) {
+                    return name.trim();
+                }
+            } catch (Exception ignored) {}
+        }
+
+        // 3. Check curated dictionary
+        if (CURATED_PACK_NAMES.containsKey(folderName)) {
+            return CURATED_PACK_NAMES.get(folderName);
+        }
+
+        // 4. Format clean title from ID
+        String clean = folderName.replace("custom_sound_pack_", "")
+                .replace("sound_pack_", "")
+                .replace("custom-sound-pack-", "")
+                .replace("sound-pack-", "")
+                .replace("traveler-", "")
+                .replace("-", " ")
+                .replace("_", " ");
+
+        try {
+            long num = Long.parseLong(clean.trim());
+            return "Mechvibes Pack #" + (num % 1000);
+        } catch (Exception ignored) {}
+
+        String[] words = clean.split("\\s+");
+        StringBuilder sb = new StringBuilder();
+        for (String w : words) {
+            if (w.length() > 0) {
+                sb.append(Character.toUpperCase(w.charAt(0))).append(w.substring(1)).append(" ");
+            }
+        }
+        String res = sb.toString().trim();
+        return res.isEmpty() ? folderName : res;
+    }
+
+    private void updateSoundpackSummary(android.preference.ListPreference pref, String value, List<String> names, List<String> values) {
         int idx = values.indexOf(value);
         if (idx != -1) {
             pref.setSummary(names.get(idx));
         } else {
-            pref.setSummary("iOS (Apple Inc. - Sampled)");
+            pref.setSummary("System Click (Standard)");
         }
     }
 }
