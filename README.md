@@ -1,78 +1,142 @@
-# Iris Keyboard
+<div align="center">
+  <img src="fastlane/metadata/android/en-US/images/icon.png" width="96" height="96" alt="Iris Keyboard Icon" />
+  <h1>Iris Keyboard</h1>
+  <p>A fast, private, and highly customizable Android keyboard based on AOSP / Simple Keyboard.</p>
 
-[![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
-[![Android](https://img.shields.io/badge/Android-7.0%2B-green)](https://github.com/MohamadOday/Iris/releases)
-[![Target SDK](https://img.shields.io/badge/target%20SDK-36-orange)](app/build.gradle)
+  <p>
+    <a href="https://github.com/MohamadOday/Iris/releases"><img src="https://img.shields.io/github/v/release/MohamadOday/Iris?color=blue&style=flat-square" alt="Release" /></a>
+    <a href="https://f-droid.org/packages/nabu.iris.keyboard/"><img src="https://img.shields.io/badge/F--Droid-Available-3DDC84?style=flat-square&logo=fdroid&logoColor=white" alt="F-Droid" /></a>
+    <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache_2.0-orange?style=flat-square" alt="License" /></a>
+    <a href="https://github.com/MohamadOday/Iris/releases"><img src="https://img.shields.io/badge/Android-7.0%2B-green?style=flat-square&logo=android&logoColor=white" alt="Android" /></a>
+    <a href="app/build.gradle"><img src="https://img.shields.io/badge/Target_SDK-36-blueviolet?style=flat-square" alt="Target SDK" /></a>
+  </p>
+</div>
 
-Iris is an Android keyboard based on [Simple Keyboard](https://github.com/rkkr/simple-keyboard). It keeps the small AOSP-style keyboard at its core and adds clipboard history, translation, optional AI tools, GIF search, sound packs, and visual customization.
+---
 
-## Features
+## Overview
 
-- Clipboard history and recent-clipboard suggestions
-- Offline translation with the optional ML Kit build
-- Online and AI-assisted translation
-- AI actions through Ollama, Gemini, or an OpenAI-compatible endpoint
-- GIF search using Tenor, GIPHY, or Klipy
-- Custom emoji shortcuts
-- Built-in and downloadable keyboard sound packs
-- Light, dark, AMOLED, and custom-color themes
-- Adjustable key size, spacing, keyboard height, and bottom offset
-- More than 55 keyboard layouts and 90 supported locales
-- JSON settings backup and restore
+Iris keeps the lightweight, low-latency foundation of [Simple Keyboard](https://github.com/rkkr/simple-keyboard) while integrating modern features: Material You dynamic coloring, a clipboard manager, offline and online translation, an optional AI assistant bar, physical mechanical sound packs, and extensive UI personalization.
 
-Network features are optional. Iris does not include analytics or advertising, but text sent to a translation, GIF, or AI provider is subject to that provider's privacy policy.
+Iris is completely tracker-free and does not collect personal analytics. Network permissions are strictly optional and only triggered when using online translation, AI endpoints, GIF search, or the soundpack downloader.
 
-## Download
+---
 
-APKs are available on the [Releases page](https://github.com/MohamadOday/Iris/releases). Each release contains two variants:
+## Screenshots
 
-| Variant | Use it when |
-| --- | --- |
-| `MlKit` | You want downloadable offline translation models and have Google Play services installed. |
-| `NoMlKit` | You want the smaller, fully open-source build without Google ML Kit. Online and AI translation remain available. |
+<div align="center">
+  <table>
+    <tr>
+      <td align="center" width="33%">
+        <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/1.jpg" alt="Keyboard Overview" width="100%" /><br />
+        <sub><b>Main Keyboard & Toolbar</b></sub>
+      </td>
+      <td align="center" width="33%">
+        <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/2.jpg" alt="Material You Theming" width="100%" /><br />
+        <sub><b>Material You Theming</b></sub>
+      </td>
+      <td align="center" width="33%">
+        <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/3.jpg" alt="Clipboard Manager" width="100%" /><br />
+        <sub><b>Clipboard Manager</b></sub>
+      </td>
+    </tr>
+    <tr>
+      <td align="center" width="33%">
+        <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/4.jpg" alt="Translation Suite" width="100%" /><br />
+        <sub><b>Translation Suite</b></sub>
+      </td>
+      <td align="center" width="33%">
+        <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/5.jpg" alt="AI Copilot Studio" width="100%" /><br />
+        <sub><b>AI Copilot Studio</b></sub>
+      </td>
+      <td align="center" width="33%">
+        <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/6.jpg" alt="Mechanical Soundpacks" width="100%" /><br />
+        <sub><b>Soundpack Store</b></sub>
+      </td>
+    </tr>
+  </table>
+</div>
 
-After installing the APK, enable Iris under Android's keyboard settings and select it as an input method.
+---
 
-## AI and translation setup
+## Key Features
 
-AI features require a provider configured in Iris settings:
+- **Material You Dynamic Theming**: Automatically synchronizes keyboard and accent colors with your Android wallpaper (Monet palette on Android 12+, wallpaper extraction on Android 8.1–11, and adaptive palettes on older versions). Includes an AMOLED True Black toggle and manual RGB color picker.
+- **Clipboard History**: Built-in clipboard manager with pinning, instant suggestion bar, search, and batch clearing.
+- **Translation Engine**:
+  - *Offline:* On-device neural machine translation via Google ML Kit (`MlKit` build).
+  - *Online / AI:* Quick web and AI-assisted translation for over 50 languages.
+- **AI Copilot Toolbar**: Optional keyboard assistant capable of grammar correction, tone adjustment, smart compose, and custom prompts via:
+  - Local **Ollama** instances (on-device or LAN)
+  - **Google Gemini** API
+  - Custom **OpenAI-compatible** endpoints (e.g. OpenRouter, DeepSeek, LocalAI)
+- **Mechanical Sound Engine**: Built-in audio synthesizer and downloadable Mechvibes soundpacks (Cherry MX Blue, Brown, Red, Black, Holy Pandas, NK Creams, IBM Model M, Topre, etc.) with custom ZIP import and live scraper.
+- **Layout & Typographic Control**: 55+ keyboard layouts (QWERTY, Dvorak, Colemak, QWERTZ, AZERTY, Arabic, Cyrillic, etc.), 90+ locales, custom key shapes, key size scaling, spacing, height adjustments, and bottom navigation offsets.
+- **GIF & Media Search**: Integrated Tenor, GIPHY, and Klipy GIF browser with custom emoji shortcut management.
+- **Backup & Restore**: Export and import full keyboard settings and dictionary backups via JSON.
 
-- **Ollama:** connect to an Ollama server on your device or local network.
-- **Gemini:** provide a Gemini API key.
-- **OpenAI-compatible:** provide an endpoint, model, and any required headers.
+---
 
-Offline translation is available only in the `MlKit` variant. Translation models are downloaded separately and may use tens of megabytes per language. Online translation and GIF search require an internet connection; some GIF providers require your own API key.
+## Downloads
 
-## Building
+APKs are available on [GitHub Releases](https://github.com/MohamadOday/Iris/releases) and [F-Droid](https://f-droid.org/packages/nabu.iris.keyboard/).
 
-Requirements:
+| Variant | Description | Recommended For |
+| :--- | :--- | :--- |
+| **`MlKit`** | Includes Google ML Kit translation libraries. | Users who want fully offline, on-device translation model downloads. |
+| **`NoMlKit`** | Lightweight, 100% open-source build without Google proprietary binaries. | F-Droid users and privacy-focused setups. (Online & AI translation still supported). |
 
+---
+
+## Building from Source
+
+### Prerequisites
 - JDK 17
-- Android SDK Platform 36
+- Android SDK (API Level 36 / Build-Tools 36.0.0)
 
-Build a debug APK:
+### Commands
 
-```sh
-./gradlew assembleMlkitDebug
-./gradlew assembleNomlkitDebug
+Clone the repository:
+```bash
+git clone https://github.com/MohamadOday/Iris.git
+cd Iris
 ```
 
-Build both release variants:
+Build debug APKs:
+```bash
+./gradlew assembleNomlkitDebug  # FOSS variant
+./gradlew assembleMlkitDebug    # ML Kit variant
+```
 
-```sh
+Build release APKs:
+```bash
 ./gradlew assembleRelease
 ```
 
-Outputs are written to `app/build/outputs/apk/`. Release builds are unsigned unless signing credentials are supplied to Gradle. Tagged releases are built and signed by the GitHub Actions workflow.
+Generated APKs will be located in `app/build/outputs/apk/`.
 
-## Contributing
+---
 
-Bug reports and pull requests are welcome. When reporting a crash, include the Android version, APK variant, steps to reproduce, and the relevant `adb logcat` output when possible.
+## Privacy & Network Disclosure
 
-For general feedback, contact [@bn3di](https://t.me/bn3di) on Telegram.
+Iris is designed with a privacy-first approach:
+- **No telemetry, trackers, or background data collection.**
+- **Typing data never leaves your device.**
+- Network calls are strictly made only when the user explicitly triggers an external feature (e.g. requesting a GIF, running an AI prompt, or translating text via an online API).
+- All AI and custom API keys are stored securely in local device shared preferences.
 
-## License and attribution
+---
 
-Iris is licensed under the [Apache License 2.0](LICENSE). It is based on Simple Keyboard and contains third-party code or assets described in [NOTICE](NOTICE).
+## Contributing & Support
 
-The ML Kit variant includes Google ML Kit and is also subject to Google's applicable terms. The NoMlKit variant excludes that dependency.
+Contributions, bug reports, and layout improvements are welcome.
+- For bug reports or feature requests, open an issue on the [GitHub Issue Tracker](https://github.com/MohamadOday/Iris/issues).
+- For discussion and questions, join the Telegram channel: [@bn3di](https://t.me/bn3di).
+
+---
+
+## License
+
+Iris Keyboard is released under the [Apache License 2.0](LICENSE).
+Based on [Simple Keyboard](https://github.com/rkkr/simple-keyboard) by Raimondas Rimkus and the Android Open Source Project (AOSP).
+Third-party notices and licenses are documented in [NOTICE](NOTICE).
