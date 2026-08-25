@@ -470,8 +470,8 @@ public class SoundpackDownloadActivity extends Activity {
     private void loadSoundpacks() {
         mSoundpacks.clear();
 
-        mSoundpacks.add(new SoundpackItem("default", "System Click (Standard)", "", "Tactile", true));
-        mSoundpacks.add(new SoundpackItem("default_deep", "Bubble Wrap (Synthesized)", "", "Tactile", true));
+        mSoundpacks.add(new SoundpackItem("default", "iOS (Apple Inc. - Sampled)", "", "Tactile", true));
+        mSoundpacks.add(new SoundpackItem("default_deep", "iOS Deep (Apple Inc. - Sampled)", "", "Tactile", true));
 
         // Load all 94 Official Mechvibes soundpacks from catalog
         for (SoundpackCatalog.CatalogEntry entry : SoundpackCatalog.ENTRIES) {

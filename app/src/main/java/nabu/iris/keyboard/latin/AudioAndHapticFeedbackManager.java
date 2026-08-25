@@ -45,7 +45,7 @@ import nabu.iris.keyboard.latin.settings.SettingsValues;
 
 /**
  * Robust audio and haptic feedback manager for Iris Keyboard.
- * Supports standard sound effects, custom Mechvibes soundpacks, audio slicing, and varied acoustic key sounds.
+ * Supports Apple iOS sampled clicks, custom Mechvibes soundpacks, audio slicing, and varied acoustic key sounds.
  */
 public final class AudioAndHapticFeedbackManager {
     private static final String TAG = "AudioHapticFeedback";
@@ -140,7 +140,8 @@ public final class AudioAndHapticFeedbackManager {
         mGeneralSoundList.clear();
 
         File soundpacksDir = context != null ? context.getExternalFilesDir("soundpacks") : null;
-        if (soundpacksDir != null && soundpackName != null && !soundpackName.isEmpty()) {
+        if (soundpacksDir != null && soundpackName != null && !soundpackName.isEmpty()
+                && !soundpackName.equals("default") && !soundpackName.equals("default_deep")) {
             File packDir = new File(soundpacksDir, soundpackName);
             if (packDir.exists() && packDir.isDirectory()) {
                 File[] files = packDir.listFiles();
@@ -182,7 +183,7 @@ public final class AudioAndHapticFeedbackManager {
                         }
                     }
 
-                    // Assign fallbacks within the pack
+                    // Assign fallbacks within the custom pack
                     if (mSoundStandard == -1 && !mGeneralSoundList.isEmpty()) {
                         mSoundStandard = mGeneralSoundList.get(0);
                     }
@@ -199,17 +200,20 @@ public final class AudioAndHapticFeedbackManager {
             }
         }
 
-        // Built-in raw fallbacks only if no custom soundpack files exist
-        if (mSoundStandard == -1) mSoundStandard = loadSound(context, "fx_keypress_standard");
-        if (mSoundSpacebar == -1) mSoundSpacebar = loadSound(context, "fx_keypress_spacebar");
-        if (mSoundDelete == -1) mSoundDelete = loadSound(context, "fx_keypress_delete");
-        if (mSoundReturn == -1) mSoundReturn = loadSound(context, "fx_keypress_return");
+        // Built-in Apple iOS Sampled Soundpacks (res/raw/keypress_*.ogg)
+        if ("default_deep".equals(soundpackName)) {
+            if (mSoundStandard == -1) mSoundStandard = loadSound(context, "keypress_standard_deep");
+            if (mSoundSpacebar == -1) mSoundSpacebar = loadSound(context, "keypress_spacebar_deep");
+            if (mSoundDelete == -1) mSoundDelete = loadSound(context, "keypress_delete_deep");
+            if (mSoundReturn == -1) mSoundReturn = loadSound(context, "keypress_return_deep");
+        } else {
+            if (mSoundStandard == -1) mSoundStandard = loadSound(context, "keypress_standard");
+            if (mSoundSpacebar == -1) mSoundSpacebar = loadSound(context, "keypress_spacebar");
+            if (mSoundDelete == -1) mSoundDelete = loadSound(context, "keypress_delete");
+            if (mSoundReturn == -1) mSoundReturn = loadSound(context, "keypress_return");
+        }
 
-        if (mSoundStandard == -1) mSoundStandard = loadSound(context, "fx_standard");
-        if (mSoundSpacebar == -1) mSoundSpacebar = loadSound(context, "fx_spacebar");
-        if (mSoundDelete == -1) mSoundDelete = loadSound(context, "fx_delete");
-        if (mSoundReturn == -1) mSoundReturn = loadSound(context, "fx_return");
-
+        // Final safety fallbacks
         if (mSoundSpacebar == -1) mSoundSpacebar = mSoundStandard;
         if (mSoundDelete == -1) mSoundDelete = mSoundStandard;
         if (mSoundReturn == -1) mSoundReturn = mSoundStandard;
@@ -343,7 +347,7 @@ public final class AudioAndHapticFeedbackManager {
                 soundId = mGeneralSoundList.get(index);
             }
 
-            // 4. Standard Pack Fallback
+            // 4. Standard Pack Fallback (Apple iOS click or Custom pack standard)
             if ((soundId == -1 || soundId == 0) && mSoundStandard > 0) {
                 soundId = mSoundStandard;
             }

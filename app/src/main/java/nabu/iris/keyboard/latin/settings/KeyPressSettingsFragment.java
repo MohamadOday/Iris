@@ -171,10 +171,10 @@ public final class KeyPressSettingsFragment extends SubScreenFragment {
         List<String> values = new ArrayList<>();
 
         // Built-in Defaults
-        names.add("System Click (Standard)");
+        names.add("iOS (Apple Inc. - Sampled)");
         values.add("default");
 
-        names.add("Bubble Wrap (Synthesized)");
+        names.add("iOS Deep (Apple Inc. - Sampled)");
         values.add("default_deep");
         
         // Scan for downloaded & custom soundpacks

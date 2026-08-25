@@ -162,9 +162,9 @@ public final class SoundpackCatalog {
     }
 
     public static String resolveName(String id) {
-        if (id == null) return "System Click (Standard)";
-        if (id.equals("default")) return "System Click (Standard)";
-        if (id.equals("default_deep")) return "Bubble Wrap (Synthesized)";
+        if (id == null) return "iOS (Apple Inc. - Sampled)";
+        if (id.equals("default")) return "iOS (Apple Inc. - Sampled)";
+        if (id.equals("default_deep")) return "iOS Deep (Apple Inc. - Sampled)";
 
         String cleanId = id.replace("-", "_");
         if (CATALOG_NAMES.containsKey(cleanId)) {
