@@ -28,30 +28,24 @@ Iris is completely tracker-free and does not collect personal analytics. Network
   <table>
     <tr>
       <td align="center" width="33%">
-        <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/1.jpg" alt="Keyboard Overview" width="100%" /><br />
-        <sub><b>Main Keyboard & Toolbar</b></sub>
+        <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/1.jpg" alt="Screenshot 1" width="100%" />
       </td>
       <td align="center" width="33%">
-        <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/2.jpg" alt="Material You Theming" width="100%" /><br />
-        <sub><b>Material You Theming</b></sub>
+        <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/2.jpg" alt="Screenshot 2" width="100%" />
       </td>
       <td align="center" width="33%">
-        <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/3.jpg" alt="Clipboard Manager" width="100%" /><br />
-        <sub><b>Clipboard Manager</b></sub>
+        <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/3.jpg" alt="Screenshot 3" width="100%" />
       </td>
     </tr>
     <tr>
       <td align="center" width="33%">
-        <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/4.jpg" alt="Translation Suite" width="100%" /><br />
-        <sub><b>Translation Suite</b></sub>
+        <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/4.jpg" alt="Screenshot 4" width="100%" />
       </td>
       <td align="center" width="33%">
-        <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/5.jpg" alt="AI Copilot Studio" width="100%" /><br />
-        <sub><b>AI Copilot Studio</b></sub>
+        <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/5.jpg" alt="Screenshot 5" width="100%" />
       </td>
       <td align="center" width="33%">
-        <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/6.jpg" alt="Mechanical Soundpacks" width="100%" /><br />
-        <sub><b>Soundpack Store</b></sub>
+        <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/6.jpg" alt="Screenshot 6" width="100%" />
       </td>
     </tr>
   </table>
