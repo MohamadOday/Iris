@@ -16,42 +16,49 @@
 
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     android:title="@string/settings_screen_preferences">
-    <SwitchPreference
-        android:key="auto_cap"
-        android:title="@string/auto_cap"
-        android:summary="@string/auto_cap_summary"
-        android:defaultValue="true"
-        android:persistent="true" />
-    <SwitchPreference
-        android:key="pref_show_number_row"
-        android:title="@string/show_number_row"
-        android:defaultValue="false" />
-    <SwitchPreference
-        android:key="pref_show_special_chars"
-        android:title="@string/show_special_chars"
-        android:defaultValue="true" />
-    <SwitchPreference
-        android:key="pref_show_language_switch_key"
-        android:title="@string/show_language_switch_key"
-        android:defaultValue="true" />
-    <SwitchPreference
-        android:key="pref_use_on_screen"
-        android:title="@string/pref_use_on_screen"
-        android:summary="@string/pref_use_on_screen_summary"
-        android:defaultValue="false" />
-    <SwitchPreference
-        android:key="pref_enable_ime_switch"
-        android:title="@string/pref_enable_ime_switch"
-        android:dependency="pref_show_language_switch_key"
-        android:defaultValue="false" />
-    <SwitchPreference
-        android:key="pref_space_swipe"
-        android:title="@string/space_swipe"
-        android:defaultValue="false" />
-    <SwitchPreference
-        android:key="pref_delete_swipe"
-        android:title="@string/delete_swipe"
-        android:defaultValue="false" />
+
+    <PreferenceCategory android:title="Typing Behavior">
+        <SwitchPreference
+            android:key="auto_cap"
+            android:title="@string/auto_cap"
+            android:summary="@string/auto_cap_summary"
+            android:defaultValue="true"
+            android:persistent="true" />
+        <SwitchPreference
+            android:key="pref_show_number_row"
+            android:title="@string/show_number_row"
+            android:defaultValue="false" />
+        <SwitchPreference
+            android:key="pref_show_special_chars"
+            android:title="@string/show_special_chars"
+            android:defaultValue="true" />
+        <SwitchPreference
+            android:key="pref_show_language_switch_key"
+            android:title="@string/show_language_switch_key"
+            android:defaultValue="true" />
+        <SwitchPreference
+            android:key="pref_enable_ime_switch"
+            android:title="@string/pref_enable_ime_switch"
+            android:dependency="pref_show_language_switch_key"
+            android:defaultValue="false" />
+        <SwitchPreference
+            android:key="pref_use_on_screen"
+            android:title="@string/pref_use_on_screen"
+            android:summary="@string/pref_use_on_screen_summary"
+            android:defaultValue="false" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="Gestures &amp; Swiping">
+        <SwitchPreference
+            android:key="pref_space_swipe"
+            android:title="@string/space_swipe"
+            android:defaultValue="false" />
+        <SwitchPreference
+            android:key="pref_delete_swipe"
+            android:title="@string/delete_swipe"
+            android:defaultValue="false" />
+    </PreferenceCategory>
+
     <PreferenceCategory
         android:title="@string/utility_toolbar_category">
         <nabu.iris.keyboard.latin.settings.DragReorderDialogPreference
@@ -62,7 +69,7 @@
             android:key="pref_emoji_list"
             android:title="@string/emoji_list"
             android:summary="@string/emoji_list_summary"
-            android:defaultValue="😀,😁,😂,🤣,😃,😄,😅,😆,😉,😊,😋,😎,😍,😘,🥰,😗,😙,😚" />
+            android:defaultValue="❤️,😂,🔥,👍,😊,✨,🙏,🎉,😍,🥺,👏,💯,🤣,😎,🥳,🥰,🤔,💀,🙌,😭,🚀" />
         <nabu.iris.keyboard.latin.settings.ColorDialogPreference
             android:key="pref_utility_background_color"
             android:title="@string/pref_utility_background_color_title" />
@@ -72,6 +79,9 @@
             android:summary="@string/pref_clip_suggestion_timeout_summary"
             android:defaultValue="60"
             android:inputType="number" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="GIF Search Integration">
         <SwitchPreference
             android:key="pref_utility_show_gif"
             android:title="Show GIF Search button"

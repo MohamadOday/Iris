@@ -535,7 +535,7 @@ public final class Settings extends BroadcastReceiver implements SharedPreferenc
     }
 
     public static String readEmojiList(final SharedPreferences prefs) {
-        return prefs.getString(PREF_EMOJI_LIST, "😀,😁,😂,🤣,😃,😄,😅,😆,😉,😊,😋,😎,😍,😘,🥰,😗,😙,😚");
+        return prefs.getString(PREF_EMOJI_LIST, "❤️,😂,🔥,👍,😊,✨,🙏,🎉,😍,🥺,👏,💯,🤣,😎,🥳,🥰,🤔,💀,🙌,😭,🚀");
     }
 
     public static boolean readUtilityShowKeys(final SharedPreferences prefs) {

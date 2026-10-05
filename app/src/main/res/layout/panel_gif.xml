@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Dedicated GIF Search Panel -->
+<!-- Dedicated Material You 3 GIF Search Panel -->
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/gif_panel"
@@ -7,46 +7,176 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:visibility="gone"
-    android:padding="8dp">
+    android:paddingStart="10dp"
+    android:paddingEnd="10dp"
+    android:paddingTop="6dp"
+    android:paddingBottom="8dp">
 
-    <!-- Search Header Row -->
+    <!-- Material 3 Pill Search Bar -->
     <LinearLayout
+        android:id="@+id/gif_search_bar_container"
         android:layout_width="match_parent"
-        android:layout_height="36dp"
+        android:layout_height="38dp"
         android:orientation="horizontal"
         android:gravity="center_vertical"
+        android:paddingStart="10dp"
+        android:paddingEnd="6dp"
         android:layout_marginBottom="6dp">
+
+        <ImageView
+            android:id="@+id/gif_search_icon"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/ic_search"
+            android:scaleType="centerInside"
+            android:contentDescription="Search Icon" />
 
         <EditText
             android:id="@+id/gif_search_input"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:hint="Search GIFs..."
-            android:textColorHint="#66FFFFFF"
-            android:textColor="#FFFFFF"
-            android:textSize="12sp"
+            android:hint="Search GIFs"
+            android:textSize="12.5sp"
             android:singleLine="true"
             android:paddingStart="8dp"
             android:paddingEnd="8dp"
             android:background="@null"
             android:inputType="textNoSuggestions"
+            android:imeOptions="actionSearch"
             android:cursorVisible="true" />
 
         <TextView
             android:id="@+id/gif_clear_btn"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:text="CLEAR"
-            android:textColor="#FF7C4DFF"
+            android:layout_height="26dp"
+            android:text="Clear"
             android:textSize="10.5sp"
-            android:textStyle="bold"
             android:gravity="center"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
             android:clickable="true"
             android:focusable="true" />
     </LinearLayout>
+
+    <!-- Material 3 Reaction Search Chips Row -->
+    <HorizontalScrollView
+        android:id="@+id/gif_chips_scroll"
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:scrollbars="none"
+        android:layout_marginBottom="6dp">
+        <LinearLayout
+            android:id="@+id/gif_chips_container"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/gif_chip_trending"
+                android:layout_width="wrap_content"
+                android:layout_height="26dp"
+                android:text="🔥 Trending"
+                android:textSize="11sp"
+                android:gravity="center"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:layout_marginEnd="6dp"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <TextView
+                android:id="@+id/gif_chip_laugh"
+                android:layout_width="wrap_content"
+                android:layout_height="26dp"
+                android:text="😂 Laugh"
+                android:textSize="11sp"
+                android:gravity="center"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:layout_marginEnd="6dp"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <TextView
+                android:id="@+id/gif_chip_love"
+                android:layout_width="wrap_content"
+                android:layout_height="26dp"
+                android:text="❤️ Love"
+                android:textSize="11sp"
+                android:gravity="center"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:layout_marginEnd="6dp"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <TextView
+                android:id="@+id/gif_chip_clap"
+                android:layout_width="wrap_content"
+                android:layout_height="26dp"
+                android:text="👏 Clap"
+                android:textSize="11sp"
+                android:gravity="center"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:layout_marginEnd="6dp"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <TextView
+                android:id="@+id/gif_chip_dance"
+                android:layout_width="wrap_content"
+                android:layout_height="26dp"
+                android:text="💃 Dance"
+                android:textSize="11sp"
+                android:gravity="center"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:layout_marginEnd="6dp"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <TextView
+                android:id="@+id/gif_chip_cry"
+                android:layout_width="wrap_content"
+                android:layout_height="26dp"
+                android:text="😭 Cry"
+                android:textSize="11sp"
+                android:gravity="center"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:layout_marginEnd="6dp"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <TextView
+                android:id="@+id/gif_chip_party"
+                android:layout_width="wrap_content"
+                android:layout_height="26dp"
+                android:text="🎉 Party"
+                android:textSize="11sp"
+                android:gravity="center"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:layout_marginEnd="6dp"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <TextView
+                android:id="@+id/gif_chip_wow"
+                android:layout_width="wrap_content"
+                android:layout_height="26dp"
+                android:text="✨ Wow"
+                android:textSize="11sp"
+                android:gravity="center"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:clickable="true"
+                android:focusable="true" />
+        </LinearLayout>
+    </HorizontalScrollView>
 
     <!-- Grid or List of GIFs -->
     <ScrollView

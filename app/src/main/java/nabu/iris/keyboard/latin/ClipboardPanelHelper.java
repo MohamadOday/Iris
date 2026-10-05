@@ -1,22 +1,32 @@
 /*
  * Copyright (C) 2026 Latin IME Customizer
+ * Copyright (C) 2026 Iris Keyboard Project
  */
 
 package nabu.iris.keyboard.latin;
 
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.RippleDrawable;
 import android.os.Build;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
+import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -35,19 +45,34 @@ public final class ClipboardPanelHelper {
     private final Context mContext;
     private final LinearLayout mClipboardPanel;
     private final LinearLayout mItemsList;
-    
-    private LinearLayout mTabsLayout;
+
+    private final ImageView mBackBtn;
+    private final TextView mTitleText;
+    private final TextView mClearAllBtn;
+    private final LinearLayout mTabsLayout;
+    private final LinearLayout mSearchBox;
+    private final EditText mSearchInput;
+    private final ImageView mSearchClear;
+
     private String mSelectedTab = "all";
     private String mSearchQuery = "";
 
     public ClipboardPanelHelper(ClipboardBarController controller, View inputView) {
         mController = controller;
         mContext = controller.getContext();
-        
+
         mClipboardPanel = inputView.findViewById(R.id.clipboard_panel);
         mItemsList = inputView.findViewById(R.id.clipboard_items_list);
-        
-        setupClipboardControls();
+
+        mBackBtn = inputView.findViewById(R.id.clipboard_back_btn);
+        mTitleText = inputView.findViewById(R.id.clipboard_header_title);
+        mClearAllBtn = inputView.findViewById(R.id.clipboard_clear_all_btn);
+        mTabsLayout = inputView.findViewById(R.id.clipboard_tabs_layout);
+        mSearchBox = inputView.findViewById(R.id.clipboard_search_box);
+        mSearchInput = inputView.findViewById(R.id.clipboard_search_input);
+        mSearchClear = inputView.findViewById(R.id.clipboard_search_clear);
+
+        setupControls();
     }
 
     public String getSelectedTab() {
@@ -66,38 +91,139 @@ public final class ClipboardPanelHelper {
         mSearchQuery = query;
     }
 
-    private void setupClipboardControls() {
-        if (mClipboardPanel == null) return;
+    private void setupControls() {
+        if (mBackBtn != null) {
+            mBackBtn.setOnClickListener(v -> mController.showKeyboard());
+        }
 
-        LinearLayout controlsRow = new LinearLayout(mContext);
-        controlsRow.setOrientation(LinearLayout.HORIZONTAL);
-        controlsRow.setGravity(Gravity.CENTER_VERTICAL);
-        
-        LinearLayout.LayoutParams rowParams = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-        );
-        rowParams.setMargins(mController.dpToPx(8), mController.dpToPx(2), mController.dpToPx(8), mController.dpToPx(2));
-        controlsRow.setLayoutParams(rowParams);
+        if (mClearAllBtn != null) {
+            mClearAllBtn.setOnClickListener(v -> showClearAllConfirmation());
+        }
 
-        mTabsLayout = new LinearLayout(mContext);
-        mTabsLayout.setOrientation(LinearLayout.HORIZONTAL);
-        mTabsLayout.setGravity(Gravity.CENTER_VERTICAL);
-        
-        LinearLayout.LayoutParams tabsParams = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-        );
-        mTabsLayout.setLayoutParams(tabsParams);
-        controlsRow.addView(mTabsLayout);
+        if (mSearchInput != null) {
+            mController.configureSimulatedInput(mSearchInput);
+            mSearchInput.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
-        mClipboardPanel.addView(controlsRow, 0);
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    mSearchQuery = s != null ? s.toString().trim() : "";
+                    if (mSearchClear != null) {
+                        mSearchClear.setVisibility(mSearchQuery.isEmpty() ? View.GONE : View.VISIBLE);
+                    }
+                    refresh();
+                }
+
+                @Override
+                public void afterTextChanged(Editable s) {}
+            });
+        }
+
+        if (mSearchClear != null) {
+            mSearchClear.setOnClickListener(v -> {
+                if (mSearchInput != null) {
+                    mSearchInput.setText("");
+                }
+            });
+        }
+    }
+
+    private void showClearAllConfirmation() {
+        ClipboardHistoryManager manager = mController.getClipboardHistoryManager();
+        if (manager == null || manager.getItems().isEmpty()) {
+            return;
+        }
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+        builder.setTitle("Clear Clipboard History");
+        builder.setMessage("Delete all unpinned clipboard items?");
+        builder.setPositiveButton("Clear", (dialog, which) -> {
+            manager.clearUnpinned();
+            refresh();
+        });
+        builder.setNegativeButton("Cancel", null);
+
+        AlertDialog dialog = builder.create();
+        Window window = dialog.getWindow();
+        if (window != null) {
+            WindowManager.LayoutParams lp = window.getAttributes();
+            View keyboardView = mController.getKeyboardView();
+            if (keyboardView != null) {
+                lp.token = keyboardView.getWindowToken();
+            }
+            lp.type = WindowManager.LayoutParams.TYPE_APPLICATION_ATTACHED_DIALOG;
+            window.setAttributes(lp);
+            window.addFlags(WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
+        }
+        dialog.show();
     }
 
     public void applyTheming() {
-        if (mClipboardPanel != null) {
-            mClipboardPanel.setBackgroundColor(mController.getKeyboardBackgroundColor());
+        int backgroundColor = mController.getKeyboardBackgroundColor();
+        boolean isDark = mController.isColorDark(backgroundColor);
+
+        SharedPreferences prefs = PreferenceManagerCompat.getDeviceSharedPreferences(mContext);
+        int customColor = Settings.readKeyboardColor(prefs, mContext);
+        int accentColor = customColor;
+        if (accentColor == 0 || mController.isColorMonochromeOrTooDark(accentColor)) {
+            accentColor = mContext.getResources().getColor(R.color.settings_accent);
         }
+
+        int textPrimary = isDark ? 0xFFE6E1E5 : 0xFF1D1B20;
+        int textSecondary = isDark ? 0xFFCAC4D0 : 0xFF49454E;
+        int searchBg = isDark ? 0x1AFFFFFF : 0x0D000000;
+        int searchStroke = isDark ? 0x2EFFFFFF : 0x1F000000;
+
+        if (mClipboardPanel != null) {
+            mClipboardPanel.setBackgroundColor(backgroundColor);
+        }
+
+        if (mTitleText != null) {
+            mTitleText.setTextColor(textPrimary);
+        }
+
+        if (mBackBtn != null) {
+            mBackBtn.setColorFilter(textPrimary);
+            GradientDrawable backBg = new GradientDrawable();
+            backBg.setShape(GradientDrawable.OVAL);
+            backBg.setColor(Color.TRANSPARENT);
+            mBackBtn.setBackground(backBg);
+        }
+
+        if (mClearAllBtn != null) {
+            mClearAllBtn.setTextColor(accentColor);
+            GradientDrawable clearBg = new GradientDrawable();
+            clearBg.setShape(GradientDrawable.RECTANGLE);
+            clearBg.setCornerRadius(mController.dpToPx(14));
+            clearBg.setColor(mController.getTranslucentColor(accentColor, isDark ? 18 : 12));
+            clearBg.setStroke(mController.dpToPx(1), mController.getTranslucentColor(accentColor, 40));
+            mClearAllBtn.setBackground(clearBg);
+        }
+
+        if (mSearchBox != null) {
+            GradientDrawable sBg = new GradientDrawable();
+            sBg.setShape(GradientDrawable.RECTANGLE);
+            sBg.setCornerRadius(mController.dpToPx(16));
+            sBg.setColor(searchBg);
+            sBg.setStroke(mController.dpToPx(1), searchStroke);
+            mSearchBox.setBackground(sBg);
+        }
+
+        if (mSearchInput != null) {
+            mSearchInput.setTextColor(textPrimary);
+            mSearchInput.setHintTextColor(textSecondary);
+        }
+
+        ImageView searchIcon = mClipboardPanel != null ? mClipboardPanel.findViewById(R.id.clipboard_search_icon) : null;
+        if (searchIcon != null) {
+            searchIcon.setColorFilter(textSecondary);
+        }
+
+        if (mSearchClear != null) {
+            mSearchClear.setColorFilter(textSecondary);
+        }
+
         buildTabs();
     }
 
@@ -110,29 +236,29 @@ public final class ClipboardPanelHelper {
         int backgroundColor = mController.getKeyboardBackgroundColor();
         boolean isDark = mController.isColorDark(backgroundColor);
 
-        int normalColor = isDark ? 0x99FFFFFF : 0x88000000;
+        int normalColor = isDark ? 0xFFCAC4D0 : 0xFF49454E;
         int activeColor = customColor;
         if (activeColor == 0 || mController.isColorMonochromeOrTooDark(activeColor)) {
             activeColor = mContext.getResources().getColor(R.color.settings_accent);
         }
 
         String[] tabKeys = {"all", "pinned", "links"};
-        String[] tabTitles = {"ALL", "★ PIN", "🔗 LINK"};
+        String[] tabTitles = {"All", "Pinned", "Links"};
 
         for (int i = 0; i < tabKeys.length; i++) {
             final String key = tabKeys[i];
             TextView tabBtn = new TextView(mContext);
             tabBtn.setText(tabTitles[i]);
-            tabBtn.setTextSize(9.0f);
+            tabBtn.setTextSize(10.5f);
             tabBtn.setGravity(Gravity.CENTER);
-            tabBtn.setPadding(mController.dpToPx(8), mController.dpToPx(5), mController.dpToPx(8), mController.dpToPx(5));
+            tabBtn.setPadding(mController.dpToPx(10), mController.dpToPx(5), mController.dpToPx(10), mController.dpToPx(5));
             tabBtn.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
 
             LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.WRAP_CONTENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT
             );
-            btnParams.setMargins(mController.dpToPx(2), 0, mController.dpToPx(2), 0);
+            btnParams.setMargins(0, 0, mController.dpToPx(6), 0);
             tabBtn.setLayoutParams(btnParams);
 
             boolean isActive = mSelectedTab.equals(key);
@@ -140,11 +266,13 @@ public final class ClipboardPanelHelper {
 
             GradientDrawable tabBg = new GradientDrawable();
             tabBg.setShape(GradientDrawable.RECTANGLE);
-            tabBg.setCornerRadius(mController.dpToPx(16));
+            tabBg.setCornerRadius(mController.dpToPx(12));
             if (isActive) {
-                tabBg.setColor(mController.getTranslucentColor(activeColor, 24));
+                tabBg.setColor(mController.getTranslucentColor(activeColor, isDark ? 22 : 16));
+                tabBg.setStroke(mController.dpToPx(1), activeColor);
             } else {
-                tabBg.setColor(Color.TRANSPARENT);
+                tabBg.setColor(isDark ? 0x0FFFFFFF : 0x08000000);
+                tabBg.setStroke(mController.dpToPx(1), isDark ? 0x20FFFFFF : 0x15000000);
             }
             tabBtn.setBackground(tabBg);
 
@@ -155,7 +283,7 @@ public final class ClipboardPanelHelper {
                 buildTabs();
                 refresh();
             });
-            
+
             mTabsLayout.addView(tabBtn);
         }
     }
@@ -168,7 +296,7 @@ public final class ClipboardPanelHelper {
         if (manager == null) return;
         List<ClipboardHistoryManager.ClipboardItem> allItems = manager.getItems();
         List<ClipboardHistoryManager.ClipboardItem> items = new ArrayList<>();
-        
+
         for (ClipboardHistoryManager.ClipboardItem item : allItems) {
             if (mSearchQuery != null && !mSearchQuery.isEmpty()) {
                 if (!item.text.toLowerCase().contains(mSearchQuery.toLowerCase())) {
@@ -199,30 +327,36 @@ public final class ClipboardPanelHelper {
         }
 
         if (items.isEmpty()) {
+            LinearLayout emptyLayout = new LinearLayout(mContext);
+            emptyLayout.setOrientation(LinearLayout.VERTICAL);
+            emptyLayout.setGravity(Gravity.CENTER);
+            emptyLayout.setPadding(32, mController.dpToPx(28), 32, mController.dpToPx(28));
+
             TextView emptyView = new TextView(mContext);
-            emptyView.setText("No clipboard snippets found.");
-            emptyView.setTextSize(12);
+            emptyView.setText(mSearchQuery.isEmpty() ? "No clipboard snippets yet." : "No snippets matched search.");
+            emptyView.setTextSize(12.5f);
             emptyView.setGravity(Gravity.CENTER);
-            emptyView.setPadding(32, mController.dpToPx(32), 32, mController.dpToPx(32));
             emptyView.setTextColor(hintColor);
-            mItemsList.addView(emptyView);
+            emptyLayout.addView(emptyView);
+
+            mItemsList.addView(emptyLayout);
             return;
         }
 
-        int normalOutline = isDark ? 0x1AFFFFFF : 0x15000000;
-        int cardFill = isDark ? 0x0EFFFFFF : 0x08000000;
+        int normalOutline = isDark ? 0x22FFFFFF : 0x1A000000;
+        int cardFill = isDark ? 0x14FFFFFF : 0x0A000000;
 
         for (final ClipboardHistoryManager.ClipboardItem item : items) {
             LinearLayout rowLayout = new LinearLayout(mContext);
             rowLayout.setOrientation(LinearLayout.HORIZONTAL);
             rowLayout.setGravity(Gravity.CENTER_VERTICAL);
-            rowLayout.setPadding(mController.dpToPx(10), mController.dpToPx(7), mController.dpToPx(10), mController.dpToPx(7));
+            rowLayout.setPadding(mController.dpToPx(12), mController.dpToPx(8), mController.dpToPx(10), mController.dpToPx(8));
 
             GradientDrawable cardBg = new GradientDrawable();
             cardBg.setShape(GradientDrawable.RECTANGLE);
-            cardBg.setCornerRadius(mController.dpToPx(10));
+            cardBg.setCornerRadius(mController.dpToPx(14));
             if (item.isPinned) {
-                cardBg.setColor(mController.getTranslucentColor(accentColor, 10));
+                cardBg.setColor(mController.getTranslucentColor(accentColor, isDark ? 16 : 10));
                 cardBg.setStroke(mController.dpToPx(1), accentColor);
             } else {
                 cardBg.setColor(cardFill);
@@ -239,12 +373,12 @@ public final class ClipboardPanelHelper {
 
             final TextView clipText = new TextView(mContext);
             clipText.setText(item.text);
-            clipText.setTextSize(12);
+            clipText.setTextSize(12.5f);
             clipText.setMaxLines(2);
             clipText.setEllipsize(TextUtils.TruncateAt.END);
-            clipText.setTextColor(isDark ? 0xFFEEEEEE : 0xFF222222);
+            clipText.setTextColor(isDark ? 0xFFE6E1E5 : 0xFF1D1B20);
             clipText.setGravity(Gravity.CENTER_VERTICAL);
-            
+
             LinearLayout.LayoutParams textParams = new LinearLayout.LayoutParams(
                     0,
                     ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -272,7 +406,7 @@ public final class ClipboardPanelHelper {
                             float diffX = event.getX() - startX;
                             float diffY = event.getY() - startY;
                             if (isScrolling) return false;
-                            
+
                             if (!isSwiping && Math.abs(diffY) > mController.dpToPx(8) && Math.abs(diffY) > Math.abs(diffX)) {
                                 isScrolling = true;
                                 return false;
@@ -337,25 +471,25 @@ public final class ClipboardPanelHelper {
             rowLayout.addView(clipText);
 
             View spacer = new View(mContext);
-            rowLayout.addView(spacer, new LinearLayout.LayoutParams(mController.dpToPx(12), 1));
+            rowLayout.addView(spacer, new LinearLayout.LayoutParams(mController.dpToPx(10), 1));
 
             // Pin button
-            final TextView pinBtn = new TextView(mContext);
-            pinBtn.setText(item.isPinned ? "★" : "☆");
-            pinBtn.setTextSize(11);
-            pinBtn.setGravity(Gravity.CENTER);
-            pinBtn.setLayoutParams(new LinearLayout.LayoutParams(mController.dpToPx(26), mController.dpToPx(26)));
-            
+            final ImageView pinBtn = new ImageView(mContext);
+            pinBtn.setImageResource(R.drawable.ic_pin);
+            pinBtn.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+            pinBtn.setPadding(mController.dpToPx(5), mController.dpToPx(5), mController.dpToPx(5), mController.dpToPx(5));
+            pinBtn.setLayoutParams(new LinearLayout.LayoutParams(mController.dpToPx(28), mController.dpToPx(28)));
+
             GradientDrawable pinBg = new GradientDrawable();
             pinBg.setShape(GradientDrawable.OVAL);
             if (item.isPinned) {
-                pinBg.setColor(mController.getTranslucentColor(accentColor, 20));
+                pinBg.setColor(mController.getTranslucentColor(accentColor, 22));
                 pinBg.setStroke(mController.dpToPx(1), accentColor);
-                pinBtn.setTextColor(accentColor);
+                pinBtn.setColorFilter(accentColor);
             } else {
                 pinBg.setColor(isDark ? 0x11FFFFFF : 0x08000000);
-                pinBg.setStroke(mController.dpToPx(1), isDark ? 0x22FFFFFF : 0x1A000000);
-                pinBtn.setTextColor(isDark ? 0x88FFFFFF : 0x88000000);
+                pinBg.setStroke(mController.dpToPx(1), isDark ? 0x22FFFFFF : 0x18000000);
+                pinBtn.setColorFilter(isDark ? 0x88FFFFFF : 0x88000000);
             }
             pinBtn.setBackground(pinBg);
             pinBtn.setOnClickListener(v -> {
@@ -368,18 +502,18 @@ public final class ClipboardPanelHelper {
             rowLayout.addView(spacer2, new LinearLayout.LayoutParams(mController.dpToPx(6), 1));
 
             // Delete button
-            TextView delBtn = new TextView(mContext);
-            delBtn.setText("✕");
-            delBtn.setTextSize(10);
-            delBtn.setGravity(Gravity.CENTER);
-            delBtn.setLayoutParams(new LinearLayout.LayoutParams(mController.dpToPx(26), mController.dpToPx(26)));
-            
+            ImageView delBtn = new ImageView(mContext);
+            delBtn.setImageResource(R.drawable.ic_close);
+            delBtn.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+            delBtn.setPadding(mController.dpToPx(6), mController.dpToPx(6), mController.dpToPx(6), mController.dpToPx(6));
+            delBtn.setLayoutParams(new LinearLayout.LayoutParams(mController.dpToPx(28), mController.dpToPx(28)));
+
             GradientDrawable delBg = new GradientDrawable();
             delBg.setShape(GradientDrawable.OVAL);
-            delBg.setColor(isDark ? 0x22FF1744 : 0x15FF1744);
-            delBg.setStroke(mController.dpToPx(1), 0xFFFF1744);
+            delBg.setColor(isDark ? 0x1AEE5253 : 0x14EE5253);
+            delBg.setStroke(mController.dpToPx(1), 0x55EE5253);
             delBtn.setBackground(delBg);
-            delBtn.setTextColor(0xFFFF1744);
+            delBtn.setColorFilter(0xFFEE5253);
             delBtn.setOnClickListener(v -> {
                 manager.deleteItem(item.text);
                 refresh();

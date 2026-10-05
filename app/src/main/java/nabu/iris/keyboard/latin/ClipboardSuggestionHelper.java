@@ -6,7 +6,11 @@ package nabu.iris.keyboard.latin;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.RippleDrawable;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -114,10 +118,10 @@ public final class ClipboardSuggestionHelper {
             }
 
             String preview = clipText.replace("\n", " ").trim();
-            if (preview.length() > 25) {
-                preview = preview.substring(0, 22) + "...";
+            if (preview.length() > 30) {
+                preview = preview.substring(0, 30);
             }
-            mClipboardSuggestionChip.setText("📋 Paste: " + preview);
+            mClipboardSuggestionChip.setText("Paste: " + preview);
 
             mClipboardSuggestionChip.setOnClickListener(v -> {
                 if (mContext instanceof LatinIME) {
@@ -169,10 +173,28 @@ public final class ClipboardSuggestionHelper {
             GradientDrawable csBg = new GradientDrawable();
             csBg.setShape(GradientDrawable.RECTANGLE);
             csBg.setCornerRadius(mController.dpToPx(16));
-            csBg.setColor(isDark ? 0x22FFFFFF : 0x1A000000);
-            csBg.setStroke(mController.dpToPx(1.5f), accentColor);
-            mClipboardSuggestionChip.setBackground(csBg);
-            mClipboardSuggestionChip.setTextColor(isDark ? 0xFFEEEEEE : 0xFF222222);
+            csBg.setColor(Color.argb(isDark ? 45 : 30, Color.red(accentColor), Color.green(accentColor), Color.blue(accentColor)));
+            csBg.setStroke(mController.dpToPx(1f), accentColor);
+
+            GradientDrawable mask = new GradientDrawable();
+            mask.setShape(GradientDrawable.RECTANGLE);
+            mask.setCornerRadius(mController.dpToPx(16));
+            mask.setColor(0xFFFFFFFF);
+
+            RippleDrawable ripple = new RippleDrawable(
+                    ColorStateList.valueOf(0x40FFFFFF), csBg, mask);
+            mClipboardSuggestionChip.setBackground(ripple);
+            mClipboardSuggestionChip.setTextColor(isDark ? 0xFFFFFFFF : 0xFF1C1B1F);
+
+            Drawable pasteIcon = mContext.getDrawable(R.drawable.ic_content_paste);
+            if (pasteIcon != null) {
+                pasteIcon = pasteIcon.mutate();
+                pasteIcon.setTint(accentColor);
+                int size = mController.dpToPx(14);
+                pasteIcon.setBounds(0, 0, size, size);
+                mClipboardSuggestionChip.setCompoundDrawables(pasteIcon, null, null, null);
+                mClipboardSuggestionChip.setCompoundDrawablePadding(mController.dpToPx(6));
+            }
         }
     }
 

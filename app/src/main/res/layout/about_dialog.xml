@@ -45,7 +45,7 @@
                 android:id="@+id/about_version_chip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Version 6.5.2"
+                android:text="v6.5.3 • Open Source"
                 android:textColor="@color/settings_accent"
                 android:textSize="12sp"
                 android:textStyle="bold"

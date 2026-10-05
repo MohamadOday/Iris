@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Dynamic AI Copilot Overlay Panel -->
+<!-- Material You 3 AI Copilot Overlay Panel -->
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/ai_panel"
@@ -7,83 +7,85 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:visibility="gone"
-    android:padding="8dp">
+    android:paddingStart="10dp"
+    android:paddingEnd="10dp"
+    android:paddingTop="6dp"
+    android:paddingBottom="8dp">
 
-    <!-- Sleek Header Bar inside AI panel -->
+    <!-- Material 3 Header Bar -->
     <LinearLayout
+        android:id="@+id/ai_header_bar"
         android:layout_width="match_parent"
-        android:layout_height="28dp"
+        android:layout_height="34dp"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:layout_marginBottom="4dp">
-        
+        android:layout_marginBottom="6dp">
+
         <TextView
+            android:id="@+id/ai_title_text"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="AI COPILOT"
-            android:textSize="10.5sp"
+            android:text="Iris Copilot"
+            android:textSize="12.5sp"
             android:textStyle="bold"
-            android:typeface="monospace"/>
+            android:letterSpacing="0.02" />
 
         <TextView
             android:id="@+id/ai_clear_btn"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="CLEAR"
-            android:textSize="9.5sp"
-            android:textStyle="bold"
+            android:layout_height="26dp"
+            android:text="Clear"
+            android:textSize="10.5sp"
+            android:gravity="center"
             android:layout_marginEnd="6dp"
-            android:paddingStart="6dp"
-            android:paddingEnd="6dp"
-            android:paddingTop="3dp"
-            android:paddingBottom="3dp"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
             android:clickable="true"
-            android:focusable="true"/>
+            android:focusable="true" />
 
         <TextView
             android:id="@+id/ai_action_copy"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="COPY"
-            android:textSize="9.5sp"
-            android:textStyle="bold"
+            android:layout_height="26dp"
+            android:text="Copy"
+            android:textSize="10.5sp"
+            android:gravity="center"
             android:layout_marginEnd="6dp"
-            android:paddingStart="6dp"
-            android:paddingEnd="6dp"
-            android:paddingTop="3dp"
-            android:paddingBottom="3dp"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
             android:clickable="true"
-            android:focusable="true"/>
+            android:focusable="true"
+            android:visibility="gone" />
 
         <TextView
             android:id="@+id/ai_action_insert"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="INSERT"
-            android:textSize="9.5sp"
+            android:layout_height="26dp"
+            android:text="Insert"
+            android:textSize="10.5sp"
             android:textStyle="bold"
-            android:layout_marginEnd="8dp"
-            android:paddingStart="6dp"
-            android:paddingEnd="6dp"
-            android:paddingTop="3dp"
-            android:paddingBottom="3dp"
+            android:gravity="center"
+            android:layout_marginEnd="6dp"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
             android:clickable="true"
-            android:focusable="true"/>
+            android:focusable="true"
+            android:visibility="gone" />
 
         <ImageView
             android:id="@+id/ai_open_settings_btn"
             android:layout_width="28dp"
-            android:layout_height="match_parent"
+            android:layout_height="28dp"
             android:scaleType="centerInside"
             android:src="@drawable/ic_tune"
             android:padding="4dp"
             android:clickable="true"
             android:focusable="true"
-            android:contentDescription="AI Configuration"/>
+            android:contentDescription="AI Configuration" />
     </LinearLayout>
 
-    <!-- Sleek Scrollable Chat Dialogue List -->
+    <!-- Material 3 Chat Container Card -->
     <ScrollView
         android:id="@+id/ai_console_scroll"
         android:layout_width="match_parent"
@@ -97,10 +99,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="4dp" />
+            android:padding="8dp" />
     </ScrollView>
 
-    <!-- Inline Assist Tools Row -->
+    <!-- Material 3 Assist Chips Row -->
     <HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -111,97 +113,133 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical">
-            
+
             <TextView
                 android:id="@+id/ai_tool_smart_compose"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="28dp"
                 android:text="🧠 Smart Compose"
-                android:textSize="10.5sp"
-                android:padding="6dp"
+                android:textSize="11sp"
+                android:gravity="center"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
                 android:layout_marginEnd="6dp"
-                android:clickable="true"/>
+                android:clickable="true"
+                android:focusable="true" />
+
             <TextView
                 android:id="@+id/ai_tool_simplify"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="28dp"
                 android:text="✍️ Simplify"
-                android:textSize="10.5sp"
-                android:padding="6dp"
+                android:textSize="11sp"
+                android:gravity="center"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
                 android:layout_marginEnd="6dp"
-                android:clickable="true"/>
+                android:clickable="true"
+                android:focusable="true" />
+
             <TextView
                 android:id="@+id/ai_tool_grammar_fix"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="28dp"
                 android:text="📝 Grammar Fix"
-                android:textSize="10.5sp"
-                android:padding="6dp"
+                android:textSize="11sp"
+                android:gravity="center"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
                 android:layout_marginEnd="6dp"
-                android:clickable="true"/>
+                android:clickable="true"
+                android:focusable="true" />
+
             <TextView
                 android:id="@+id/ai_tool_explain"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="28dp"
                 android:text="💻 Explain Code"
-                android:textSize="10.5sp"
-                android:padding="6dp"
+                android:textSize="11sp"
+                android:gravity="center"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
                 android:layout_marginEnd="6dp"
-                android:clickable="true"/>
+                android:clickable="true"
+                android:focusable="true" />
+
             <TextView
                 android:id="@+id/ai_tool_fix"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="28dp"
                 android:text="🔧 Fix Syntax"
-                android:textSize="10.5sp"
-                android:padding="6dp"
-                android:clickable="true"/>
+                android:textSize="11sp"
+                android:gravity="center"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:clickable="true"
+                android:focusable="true" />
         </LinearLayout>
     </HorizontalScrollView>
 
-    <!-- Custom Prompt Input Box -->
+    <!-- Material 3 Pill Input Container -->
     <LinearLayout
+        android:id="@+id/ai_input_bar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="48dp"
         android:orientation="horizontal"
-        android:gravity="center_vertical">
+        android:gravity="center_vertical"
+        android:paddingStart="14dp"
+        android:paddingEnd="8dp">
+
         <EditText
             android:id="@+id/ai_prompt_input"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="1"
-            android:hint="Type prompt..."
-            android:textSize="11.5sp"
+            android:hint="Ask AI Copilot"
+            android:textSize="13.5sp"
             android:singleLine="true"
             android:imeOptions="actionSend"
-            android:padding="8dp"
+            android:background="@null"
             android:inputType="textNoSuggestions"
             android:cursorVisible="true" />
+
+        <ImageView
+            android:id="@+id/ai_prompt_clear_btn"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:src="@drawable/ic_close"
+            android:scaleType="centerInside"
+            android:padding="5dp"
+            android:layout_marginEnd="6dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:visibility="gone"
+            android:contentDescription="Clear prompt" />
+
         <TextView
             android:id="@+id/ai_paste_btn"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="28dp"
             android:text="Paste"
-            android:textSize="11.5sp"
-            android:textStyle="bold"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp"
+            android:textSize="11sp"
+            android:gravity="center"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
             android:clickable="true"
-            android:layout_marginStart="6dp" />
+            android:focusable="true"
+            android:layout_marginEnd="6dp" />
+
         <TextView
             android:id="@+id/ai_submit_btn"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Submit"
-            android:textSize="11.5sp"
+            android:layout_height="28dp"
+            android:text="Send"
+            android:textSize="11sp"
             android:textStyle="bold"
+            android:gravity="center"
             android:paddingStart="12dp"
             android:paddingEnd="12dp"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp"
             android:clickable="true"
-            android:layout_marginStart="6dp" />
+            android:focusable="true" />
     </LinearLayout>
 </LinearLayout>

@@ -30,12 +30,27 @@ public final class GifView extends View {
         super(context);
         mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         mPaint.setColor(0x1AFFFFFF); // Translucent white placeholder
+        initOutline();
     }
 
     public GifView(Context context, AttributeSet attrs) {
         super(context, attrs);
         mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         mPaint.setColor(0x1AFFFFFF);
+        initOutline();
+    }
+
+    private void initOutline() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            setClipToOutline(true);
+            setOutlineProvider(new android.view.ViewOutlineProvider() {
+                @Override
+                public void getOutline(View view, android.graphics.Outline outline) {
+                    float radius = 12 * view.getResources().getDisplayMetrics().density;
+                    outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), radius);
+                }
+            });
+        }
     }
 
     public void loadUrl(final String url, final LruCache<String, byte[]> cache) {

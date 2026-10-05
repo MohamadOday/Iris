@@ -388,7 +388,7 @@ public class SettingsActivity extends PreferenceActivity {
                 }
             }
 
-            float r = dpToPx(context, 16);
+            float r = dpToPx(context, 20);
             float[] cornerRadii;
             if (isFirst && isLast) {
                 cornerRadii = new float[]{r, r, r, r, r, r, r, r};
@@ -432,7 +432,7 @@ public class SettingsActivity extends PreferenceActivity {
                 marginParams = new ViewGroup.MarginLayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             }
             int marginTop = isFirst ? dpToPx(context, 4) : 0;
-            int marginBottom = isLast ? dpToPx(context, 8) : dpToPx(context, 1);
+            int marginBottom = isLast ? dpToPx(context, 10) : dpToPx(context, 2);
             marginParams.setMargins(0, marginTop, 0, marginBottom);
             view.setLayoutParams(marginParams);
 
@@ -505,9 +505,20 @@ public class SettingsActivity extends PreferenceActivity {
                 if (cb instanceof android.widget.Switch) {
                     android.widget.Switch sw = (android.widget.Switch) cb;
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                        int trackColor = getTranslucentColor(accentColor, 40);
-                        sw.setThumbTintList(ColorStateList.valueOf(accentColor));
-                        sw.setTrackTintList(ColorStateList.valueOf(trackColor));
+                        int[][] states = new int[][] {
+                            new int[] { android.R.attr.state_checked },
+                            new int[] { -android.R.attr.state_checked }
+                        };
+                        int[] thumbColors = new int[] {
+                            accentColor,
+                            mIsDarkTheme ? 0xFF9E9E9E : 0xFFBDBDBD
+                        };
+                        int[] trackColors = new int[] {
+                            getTranslucentColor(accentColor, 45),
+                            mIsDarkTheme ? 0x33FFFFFF : 0x24000000
+                        };
+                        sw.setThumbTintList(new ColorStateList(states, thumbColors));
+                        sw.setTrackTintList(new ColorStateList(states, trackColors));
                     }
                 } else {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {

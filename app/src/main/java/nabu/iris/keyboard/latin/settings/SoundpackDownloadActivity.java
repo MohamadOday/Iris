@@ -26,6 +26,8 @@ import android.view.Window;
 import android.view.WindowInsets;
 import android.view.WindowManager;
 import android.widget.EditText;
+import android.widget.HorizontalScrollView;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
@@ -62,6 +64,13 @@ import nabu.iris.keyboard.latin.AudioDecoderSlicer;
 
 public class SoundpackDownloadActivity extends Activity {
     private static final String TAG = "SoundpackDownload";
+
+    private final String[] CATEGORIES = new String[] {
+        "All", "Installed", "Linear", "Tactile", "Clicky", "Buckling Spring", "Custom"
+    };
+    private String mSelectedCategory = "All";
+    private LinearLayout mFilterChipsContainer;
+    private final List<TextView> mFilterChipViews = new ArrayList<>();
 
     private LinearLayout mMainLayout;
     private LinearLayout mCatalogLayout;
@@ -186,22 +195,38 @@ public class SoundpackDownloadActivity extends Activity {
 
         setupHeaderAndScraper();
         setupSearchBar();
+        setupFilterChips();
         setupCustomImportCard();
         setupCatalogContainer();
 
         loadSoundpacks();
     }
 
+    private int calibrateAccentColor(int color) {
+        float[] hsv = new float[3];
+        Color.colorToHSV(color, hsv);
+        if (hsv[1] > 0.68f) {
+            hsv[1] = 0.68f;
+        }
+        if (mIsDarkTheme) {
+            if (hsv[2] < 0.70f) hsv[2] = 0.75f;
+            if (hsv[2] > 0.90f) hsv[2] = 0.85f;
+        } else {
+            if (hsv[2] > 0.72f) hsv[2] = 0.68f;
+        }
+        return Color.HSVToColor(hsv);
+    }
+
     private void initMaterialYouTheme(SharedPreferences prefs) {
         mThemeBgColor = Settings.getMaterialYouColor(this, prefs);
-        mThemeAccentColor = Settings.getMaterialYouAccentColor(this);
+        mThemeAccentColor = calibrateAccentColor(Settings.getMaterialYouAccentColor(this));
 
         if (mIsAmoled) {
             mThemeBgColor = 0xFF000000;
-            mThemeCardColor = 0xFF121214;
-            mThemeStrokeColor = 0xFF28282B;
-            mThemeTextPrimary = 0xFFFFFFFF;
-            mThemeTextSecondary = 0xFF9E9E9E;
+            mThemeCardColor = 0xFF121215;
+            mThemeStrokeColor = 0xFF27272A;
+            mThemeTextPrimary = 0xFFFAFAFA;
+            mThemeTextSecondary = 0xFFA1A1AA;
             return;
         }
 
@@ -222,17 +247,17 @@ public class SoundpackDownloadActivity extends Activity {
             } catch (Exception ignored) {}
         }
 
-        // Fallbacks for older Android
+        // Iris Gallery aligned palette
         if (mIsDarkTheme) {
-            mThemeCardColor = 0xFF212126;
-            mThemeStrokeColor = 0xFF35353A;
-            mThemeTextPrimary = 0xFFEDE7F6;
-            mThemeTextSecondary = 0xFFB0BEC5;
+            mThemeCardColor = 0xFF1E1B24;
+            mThemeStrokeColor = 0xFF3F3F46;
+            mThemeTextPrimary = 0xFFE6E1E5;
+            mThemeTextSecondary = 0xFFCAC4D0;
         } else {
             mThemeCardColor = 0xFFFFFFFF;
-            mThemeStrokeColor = 0xFFE2E4E8;
-            mThemeTextPrimary = 0xFF1C1B1F;
-            mThemeTextSecondary = 0xFF49454F;
+            mThemeStrokeColor = 0xFFE4E4E7;
+            mThemeTextPrimary = 0xFF1D1B20;
+            mThemeTextSecondary = 0xFF49454E;
         }
     }
 
@@ -258,7 +283,7 @@ public class SoundpackDownloadActivity extends Activity {
         mStatsBadge = new TextView(this);
         mStatsBadge.setText("Soundpacks");
         mStatsBadge.setTextColor(mThemeAccentColor);
-        mStatsBadge.setTextSize(13f);
+        mStatsBadge.setTextSize(12.5f);
         mStatsBadge.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
 
         GradientDrawable statsBg = new GradientDrawable();
@@ -274,10 +299,9 @@ public class SoundpackDownloadActivity extends Activity {
         spacer.setLayoutParams(sp);
         header.addView(spacer);
 
-        // Scrape Live Website Button
         mScrapeBtn = new TextView(this);
-        mScrapeBtn.setText("REFRESH LIVE STORE");
-        mScrapeBtn.setTextColor(mIsDarkTheme ? 0xFF000000 : 0xFFFFFFFF);
+        mScrapeBtn.setText("SYNC STORE");
+        mScrapeBtn.setTextColor(mThemeAccentColor);
         mScrapeBtn.setTextSize(11.5f);
         mScrapeBtn.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
         mScrapeBtn.setPadding(dpToPx(14), dpToPx(7), dpToPx(14), dpToPx(7));
@@ -286,18 +310,15 @@ public class SoundpackDownloadActivity extends Activity {
         GradientDrawable scrapeBg = new GradientDrawable();
         scrapeBg.setShape(GradientDrawable.RECTANGLE);
         scrapeBg.setCornerRadius(dpToPx(12));
-        scrapeBg.setColor(mThemeAccentColor);
+        scrapeBg.setColor(getTranslucentColor(mThemeAccentColor, 35));
+        scrapeBg.setStroke(dpToPx(1), getTranslucentColor(mThemeAccentColor, 75));
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            GradientDrawable mask = new GradientDrawable();
-            mask.setShape(GradientDrawable.RECTANGLE);
-            mask.setCornerRadius(dpToPx(12));
-            mask.setColor(0xFFFFFFFF);
-            RippleDrawable ripple = new RippleDrawable(ColorStateList.valueOf(0x40FFFFFF), scrapeBg, mask);
-            mScrapeBtn.setBackground(ripple);
-        } else {
-            mScrapeBtn.setBackground(scrapeBg);
-        }
+        GradientDrawable mask = new GradientDrawable();
+        mask.setShape(GradientDrawable.RECTANGLE);
+        mask.setCornerRadius(dpToPx(12));
+        mask.setColor(0xFFFFFFFF);
+        RippleDrawable ripple = new RippleDrawable(ColorStateList.valueOf(getTranslucentColor(mThemeAccentColor, 50)), scrapeBg, mask);
+        mScrapeBtn.setBackground(ripple);
 
         mScrapeBtn.setClickable(true);
         mScrapeBtn.setFocusable(true);
@@ -308,37 +329,145 @@ public class SoundpackDownloadActivity extends Activity {
     }
 
     private void setupSearchBar() {
-        mSearchInput = new EditText(this);
-        mSearchInput.setHint("Search switches...");
-        mSearchInput.setHintTextColor(mThemeTextSecondary);
-        mSearchInput.setTextColor(mThemeTextPrimary);
-        mSearchInput.setTextSize(14f);
-        mSearchInput.setSingleLine(true);
-        mSearchInput.setPadding(dpToPx(16), dpToPx(12), dpToPx(16), dpToPx(12));
+        LinearLayout searchContainer = new LinearLayout(this);
+        searchContainer.setOrientation(LinearLayout.HORIZONTAL);
+        searchContainer.setGravity(Gravity.CENTER_VERTICAL);
+        searchContainer.setPadding(dpToPx(14), 0, dpToPx(10), 0);
 
         GradientDrawable searchBg = new GradientDrawable();
         searchBg.setShape(GradientDrawable.RECTANGLE);
-        searchBg.setCornerRadius(dpToPx(16));
+        searchBg.setCornerRadius(dpToPx(24));
         searchBg.setColor(mThemeCardColor);
         if (mThemeStrokeColor != 0) {
             searchBg.setStroke(dpToPx(1), mThemeStrokeColor);
         }
-        mSearchInput.setBackground(searchBg);
+        searchContainer.setBackground(searchBg);
 
-        LinearLayout.LayoutParams searchParams = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        searchParams.setMargins(0, 0, 0, dpToPx(12));
-        mSearchInput.setLayoutParams(searchParams);
+        LinearLayout.LayoutParams containerParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, dpToPx(48));
+        containerParams.setMargins(0, 0, 0, dpToPx(12));
+        searchContainer.setLayoutParams(containerParams);
+
+        ImageView searchIcon = new ImageView(this);
+        searchIcon.setImageDrawable(getDrawable(R.drawable.ic_search));
+        searchIcon.setImageTintList(ColorStateList.valueOf(mThemeTextSecondary));
+        LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(dpToPx(20), dpToPx(20));
+        searchIcon.setLayoutParams(iconParams);
+        searchContainer.addView(searchIcon);
+
+        mSearchInput = new EditText(this);
+        mSearchInput.setHint("Search switches or types");
+        mSearchInput.setHintTextColor(mThemeTextSecondary);
+        mSearchInput.setTextColor(mThemeTextPrimary);
+        mSearchInput.setTextSize(14f);
+        mSearchInput.setSingleLine(true);
+        mSearchInput.setBackground(null);
+        mSearchInput.setPadding(dpToPx(10), 0, dpToPx(8), 0);
+
+        LinearLayout.LayoutParams inputParams = new LinearLayout.LayoutParams(
+                0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f);
+        mSearchInput.setLayoutParams(inputParams);
+        searchContainer.addView(mSearchInput);
+
+        final ImageView clearBtn = new ImageView(this);
+        clearBtn.setImageDrawable(getDrawable(R.drawable.ic_close));
+        clearBtn.setImageTintList(ColorStateList.valueOf(mThemeTextSecondary));
+        clearBtn.setVisibility(View.GONE);
+        int pad = dpToPx(4);
+        clearBtn.setPadding(pad, pad, pad, pad);
+        LinearLayout.LayoutParams clearParams = new LinearLayout.LayoutParams(dpToPx(28), dpToPx(28));
+        clearBtn.setLayoutParams(clearParams);
+        clearBtn.setClickable(true);
+        clearBtn.setFocusable(true);
+        clearBtn.setOnClickListener(v -> mSearchInput.setText(""));
+        searchContainer.addView(clearBtn);
 
         mSearchInput.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                clearBtn.setVisibility(s.length() > 0 ? View.VISIBLE : View.GONE);
                 filterCatalog(s.toString());
             }
             @Override public void afterTextChanged(Editable s) {}
         });
 
-        mMainLayout.addView(mSearchInput);
+        mMainLayout.addView(searchContainer);
+    }
+
+    private void setupFilterChips() {
+        HorizontalScrollView scroll = new HorizontalScrollView(this);
+        scroll.setHorizontalScrollBarEnabled(false);
+        LinearLayout.LayoutParams scrollParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        scrollParams.setMargins(0, 0, 0, dpToPx(12));
+        scroll.setLayoutParams(scrollParams);
+
+        mFilterChipsContainer = new LinearLayout(this);
+        mFilterChipsContainer.setOrientation(LinearLayout.HORIZONTAL);
+        mFilterChipViews.clear();
+
+        for (final String category : CATEGORIES) {
+            final TextView chip = new TextView(this);
+            chip.setText(category);
+            chip.setTextSize(12f);
+            chip.setPadding(dpToPx(14), dpToPx(6), dpToPx(14), dpToPx(6));
+            chip.setGravity(Gravity.CENTER);
+
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            lp.setMargins(0, 0, dpToPx(8), 0);
+            chip.setLayoutParams(lp);
+
+            chip.setClickable(true);
+            chip.setFocusable(true);
+            chip.setOnClickListener(v -> {
+                mSelectedCategory = category;
+                updateFilterChips();
+                filterCatalog();
+            });
+
+            mFilterChipViews.add(chip);
+            mFilterChipsContainer.addView(chip);
+        }
+
+        updateFilterChips();
+        scroll.addView(mFilterChipsContainer);
+        mMainLayout.addView(scroll);
+    }
+
+    private void updateFilterChips() {
+        for (int i = 0; i < CATEGORIES.length; i++) {
+            String category = CATEGORIES[i];
+            TextView chip = mFilterChipViews.get(i);
+            boolean isSelected = category.equals(mSelectedCategory);
+
+            GradientDrawable bg = new GradientDrawable();
+            bg.setShape(GradientDrawable.RECTANGLE);
+            bg.setCornerRadius(dpToPx(16));
+
+            if (isSelected) {
+                bg.setColor(getTranslucentColor(mThemeAccentColor, 35));
+                bg.setStroke(dpToPx(1), getTranslucentColor(mThemeAccentColor, 80));
+                chip.setTextColor(mThemeAccentColor);
+                chip.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
+            } else {
+                bg.setColor(mThemeCardColor);
+                if (mThemeStrokeColor != 0) {
+                    bg.setStroke(dpToPx(1), mThemeStrokeColor);
+                }
+                chip.setTextColor(mThemeTextSecondary);
+                chip.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+            }
+
+            GradientDrawable mask = new GradientDrawable();
+            mask.setShape(GradientDrawable.RECTANGLE);
+            mask.setCornerRadius(dpToPx(16));
+            mask.setColor(0xFFFFFFFF);
+            RippleDrawable ripple = new RippleDrawable(
+                    ColorStateList.valueOf(getTranslucentColor(mThemeAccentColor, 40)),
+                    bg, mask);
+            chip.setBackground(ripple);
+        }
     }
 
     private void setupCustomImportCard() {
@@ -368,16 +497,22 @@ public class SoundpackDownloadActivity extends Activity {
         importTitle.setLetterSpacing(0.06f);
         importCard.addView(importTitle);
 
+        TextView importSubtitle = new TextView(this);
+        importSubtitle.setText("Enter direct ZIP or Mechvibes switch URL");
+        importSubtitle.setTextColor(mThemeTextSecondary);
+        importSubtitle.setTextSize(12f);
+        importSubtitle.setPadding(0, dpToPx(2), 0, dpToPx(8));
+        importCard.addView(importSubtitle);
+
         LinearLayout importRow = new LinearLayout(this);
         importRow.setOrientation(LinearLayout.HORIZONTAL);
         importRow.setGravity(Gravity.CENTER_VERTICAL);
         LinearLayout.LayoutParams rowParams = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        rowParams.setMargins(0, dpToPx(8), 0, 0);
         importRow.setLayoutParams(rowParams);
 
         mCustomUrlInput = new EditText(this);
-        mCustomUrlInput.setHint("Paste Mechvibes ZIP or page URL...");
+        mCustomUrlInput.setHint("Paste Mechvibes ZIP or page URL");
         mCustomUrlInput.setHintTextColor(mThemeTextSecondary);
         mCustomUrlInput.setTextColor(mThemeTextPrimary);
         mCustomUrlInput.setTextSize(13f);
@@ -398,7 +533,7 @@ public class SoundpackDownloadActivity extends Activity {
 
         TextView importBtn = new TextView(this);
         importBtn.setText("IMPORT");
-        importBtn.setTextColor(mIsDarkTheme ? 0xFF000000 : 0xFFFFFFFF);
+        importBtn.setTextColor(mThemeAccentColor);
         importBtn.setTextSize(12f);
         importBtn.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
         importBtn.setPadding(dpToPx(16), dpToPx(10), dpToPx(16), dpToPx(10));
@@ -407,18 +542,15 @@ public class SoundpackDownloadActivity extends Activity {
         GradientDrawable btnBg = new GradientDrawable();
         btnBg.setShape(GradientDrawable.RECTANGLE);
         btnBg.setCornerRadius(dpToPx(12));
-        btnBg.setColor(mThemeAccentColor);
+        btnBg.setColor(getTranslucentColor(mThemeAccentColor, 35));
+        btnBg.setStroke(dpToPx(1), getTranslucentColor(mThemeAccentColor, 75));
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            GradientDrawable mask = new GradientDrawable();
-            mask.setShape(GradientDrawable.RECTANGLE);
-            mask.setCornerRadius(dpToPx(12));
-            mask.setColor(0xFFFFFFFF);
-            RippleDrawable ripple = new RippleDrawable(ColorStateList.valueOf(0x40FFFFFF), btnBg, mask);
-            importBtn.setBackground(ripple);
-        } else {
-            importBtn.setBackground(btnBg);
-        }
+        GradientDrawable mask = new GradientDrawable();
+        mask.setShape(GradientDrawable.RECTANGLE);
+        mask.setCornerRadius(dpToPx(12));
+        mask.setColor(0xFFFFFFFF);
+        RippleDrawable ripple = new RippleDrawable(ColorStateList.valueOf(getTranslucentColor(mThemeAccentColor, 50)), btnBg, mask);
+        importBtn.setBackground(ripple);
 
         importBtn.setClickable(true);
         importBtn.setFocusable(true);
@@ -560,12 +692,36 @@ public class SoundpackDownloadActivity extends Activity {
         }
     }
 
+    private void filterCatalog() {
+        String q = mSearchInput != null ? mSearchInput.getText().toString() : "";
+        filterCatalog(q);
+    }
+
     private void filterCatalog(String query) {
-        String q = query.trim().toLowerCase();
+        String q = query != null ? query.trim().toLowerCase() : "";
         mFilteredSoundpacks.clear();
 
         for (SoundpackItem item : mSoundpacks) {
-            boolean matchesQuery = q.isEmpty() || item.name.toLowerCase().contains(q) || item.type.toLowerCase().contains(q);
+            boolean matchesCategory = true;
+            if (mSelectedCategory.equals("Installed")) {
+                matchesCategory = item.isDefault || item.status.equals("Installed");
+            } else if (mSelectedCategory.equals("Linear")) {
+                matchesCategory = item.type.equalsIgnoreCase("Linear");
+            } else if (mSelectedCategory.equals("Tactile")) {
+                matchesCategory = item.type.equalsIgnoreCase("Tactile");
+            } else if (mSelectedCategory.equals("Clicky")) {
+                matchesCategory = item.type.equalsIgnoreCase("Clicky");
+            } else if (mSelectedCategory.equals("Buckling Spring")) {
+                matchesCategory = item.type.equalsIgnoreCase("Buckling Spring");
+            } else if (mSelectedCategory.equals("Custom")) {
+                matchesCategory = item.type.equalsIgnoreCase("Custom") || item.type.equalsIgnoreCase("Custom Import");
+            }
+
+            if (!matchesCategory) continue;
+
+            boolean matchesQuery = q.isEmpty()
+                    || item.name.toLowerCase().contains(q)
+                    || item.type.toLowerCase().contains(q);
             if (matchesQuery) {
                 mFilteredSoundpacks.add(item);
             }
@@ -577,7 +733,7 @@ public class SoundpackDownloadActivity extends Activity {
     private void scrapeLiveSoundpacks() {
         mMainProgressBar.setVisibility(View.VISIBLE);
         mMainProgressBar.setIndeterminate(true);
-        mLoadingText.setText("Connecting to Mechvibes live catalog...");
+        mLoadingText.setText("Connecting to Mechvibes live catalog");
         mLoadingText.setVisibility(View.VISIBLE);
         if (mScrapeBtn != null) mScrapeBtn.setEnabled(false);
 
@@ -694,8 +850,97 @@ public class SoundpackDownloadActivity extends Activity {
         }.execute();
     }
 
+    private void setButtonIcon(TextView tv, int drawableResId, int color) {
+        if (drawableResId == 0) {
+            tv.setCompoundDrawables(null, null, null, null);
+            return;
+        }
+        android.graphics.drawable.Drawable d = getDrawable(drawableResId);
+        if (d != null) {
+            d = d.mutate();
+            d.setTint(color);
+            int size = dpToPx(14);
+            d.setBounds(0, 0, size, size);
+            tv.setCompoundDrawables(d, null, null, null);
+            tv.setCompoundDrawablePadding(dpToPx(6));
+        }
+    }
+
     private void updateCatalogList() {
         mCatalogLayout.removeAllViews();
+
+        if (mFilteredSoundpacks.isEmpty()) {
+            LinearLayout emptyCard = new LinearLayout(this);
+            emptyCard.setOrientation(LinearLayout.VERTICAL);
+            emptyCard.setGravity(Gravity.CENTER);
+            emptyCard.setPadding(dpToPx(24), dpToPx(32), dpToPx(24), dpToPx(32));
+
+            GradientDrawable emptyBg = new GradientDrawable();
+            emptyBg.setShape(GradientDrawable.RECTANGLE);
+            emptyBg.setCornerRadius(dpToPx(16));
+            emptyBg.setColor(mThemeCardColor);
+            if (mThemeStrokeColor != 0) {
+                emptyBg.setStroke(dpToPx(1), mThemeStrokeColor);
+            }
+            emptyCard.setBackground(emptyBg);
+
+            LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            cardParams.setMargins(0, dpToPx(12), 0, dpToPx(12));
+            emptyCard.setLayoutParams(cardParams);
+
+            TextView title = new TextView(this);
+            title.setText("No soundpacks found");
+            title.setTextColor(mThemeTextPrimary);
+            title.setTextSize(15f);
+            title.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
+            title.setGravity(Gravity.CENTER);
+            emptyCard.addView(title);
+
+            TextView subtitle = new TextView(this);
+            subtitle.setText("No switches match the selected filter or search term.");
+            subtitle.setTextColor(mThemeTextSecondary);
+            subtitle.setTextSize(12.5f);
+            subtitle.setGravity(Gravity.CENTER);
+            subtitle.setPadding(0, dpToPx(6), 0, dpToPx(14));
+            emptyCard.addView(subtitle);
+
+            TextView resetBtn = new TextView(this);
+            resetBtn.setText("CLEAR FILTERS");
+            resetBtn.setTextColor(mThemeAccentColor);
+            resetBtn.setTextSize(11.5f);
+            resetBtn.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
+            resetBtn.setPadding(dpToPx(16), dpToPx(8), dpToPx(16), dpToPx(8));
+            resetBtn.setGravity(Gravity.CENTER);
+
+            GradientDrawable btnBg = new GradientDrawable();
+            btnBg.setShape(GradientDrawable.RECTANGLE);
+            btnBg.setCornerRadius(dpToPx(12));
+            btnBg.setColor(getTranslucentColor(mThemeAccentColor, 35));
+            btnBg.setStroke(dpToPx(1), getTranslucentColor(mThemeAccentColor, 75));
+
+            GradientDrawable mask = new GradientDrawable();
+            mask.setShape(GradientDrawable.RECTANGLE);
+            mask.setCornerRadius(dpToPx(12));
+            mask.setColor(0xFFFFFFFF);
+            RippleDrawable ripple = new RippleDrawable(ColorStateList.valueOf(getTranslucentColor(mThemeAccentColor, 50)), btnBg, mask);
+            resetBtn.setBackground(ripple);
+            resetBtn.setClickable(true);
+            resetBtn.setFocusable(true);
+            resetBtn.setOnClickListener(v -> {
+                mSelectedCategory = "All";
+                updateFilterChips();
+                if (mSearchInput != null) {
+                    mSearchInput.setText("");
+                } else {
+                    filterCatalog();
+                }
+            });
+            emptyCard.addView(resetBtn);
+
+            mCatalogLayout.addView(emptyCard);
+            return;
+        }
 
         SharedPreferences prefs = PreferenceManagerCompat.getDeviceSharedPreferences(this);
         String activeSoundpack = prefs.getString("pref_keypress_soundpack", "default");
@@ -710,12 +955,15 @@ public class SoundpackDownloadActivity extends Activity {
             GradientDrawable cardBg = new GradientDrawable();
             cardBg.setShape(GradientDrawable.RECTANGLE);
             cardBg.setCornerRadius(dpToPx(16));
-            cardBg.setColor(mThemeCardColor);
 
             if (isActive) {
+                cardBg.setColor(getTranslucentColor(mThemeAccentColor, 8));
                 cardBg.setStroke(dpToPx(2), mThemeAccentColor);
-            } else if (mThemeStrokeColor != 0) {
-                cardBg.setStroke(dpToPx(1), mThemeStrokeColor);
+            } else {
+                cardBg.setColor(mThemeCardColor);
+                if (mThemeStrokeColor != 0) {
+                    cardBg.setStroke(dpToPx(1), mThemeStrokeColor);
+                }
             }
             card.setBackground(cardBg);
 
@@ -734,7 +982,10 @@ public class SoundpackDownloadActivity extends Activity {
             nameText.setTextColor(mThemeTextPrimary);
             nameText.setTextSize(15f);
             nameText.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
+            nameText.setSingleLine(true);
+            nameText.setEllipsize(android.text.TextUtils.TruncateAt.END);
             LinearLayout.LayoutParams nameParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f);
+            nameParams.setMargins(0, 0, dpToPx(8), 0);
             nameText.setLayoutParams(nameParams);
             topRow.addView(nameText);
 
@@ -754,6 +1005,19 @@ public class SoundpackDownloadActivity extends Activity {
 
             card.addView(topRow);
 
+            // If downloading: Progress bar inside card
+            if (item.status.equals("Downloading")) {
+                ProgressBar itemBar = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
+                itemBar.setProgress(item.progress);
+                itemBar.setMax(100);
+                itemBar.setProgressTintList(ColorStateList.valueOf(mThemeAccentColor));
+                LinearLayout.LayoutParams barParams = new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT, dpToPx(6));
+                barParams.setMargins(0, dpToPx(10), 0, dpToPx(4));
+                itemBar.setLayoutParams(barParams);
+                card.addView(itemBar);
+            }
+
             // Bottom Actions Row
             LinearLayout bottomRow = new LinearLayout(this);
             bottomRow.setOrientation(LinearLayout.HORIZONTAL);
@@ -763,7 +1027,7 @@ public class SoundpackDownloadActivity extends Activity {
             // Audio Preview Button
             final TextView previewBtn = new TextView(this);
             boolean isPlayingThis = (mPlayingItem == item && item.previewStatus.equals("STOP"));
-            previewBtn.setText(isPlayingThis ? "■ STOP" : "▶ PREVIEW");
+            previewBtn.setText(isPlayingThis ? "STOP" : "PREVIEW");
             previewBtn.setTextSize(11f);
             previewBtn.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
             previewBtn.setPadding(dpToPx(12), dpToPx(6), dpToPx(12), dpToPx(6));
@@ -773,13 +1037,26 @@ public class SoundpackDownloadActivity extends Activity {
             prevBg.setShape(GradientDrawable.RECTANGLE);
             prevBg.setCornerRadius(dpToPx(10));
             if (isPlayingThis) {
-                prevBg.setColor(0xFFEF4444);
-                previewBtn.setTextColor(0xFFFFFFFF);
+                int stopColor = mIsDarkTheme ? 0xFFF87171 : 0xFFDC2626;
+                prevBg.setColor(0x28DC2626);
+                prevBg.setStroke(dpToPx(1), 0x55DC2626);
+                previewBtn.setTextColor(stopColor);
+                setButtonIcon(previewBtn, R.drawable.ic_pause, stopColor);
             } else {
-                prevBg.setColor(getTranslucentColor(mThemeAccentColor, 12));
+                prevBg.setColor(getTranslucentColor(mThemeAccentColor, 18));
+                prevBg.setStroke(dpToPx(1), getTranslucentColor(mThemeAccentColor, 45));
                 previewBtn.setTextColor(mThemeAccentColor);
+                setButtonIcon(previewBtn, R.drawable.ic_play_arrow, mThemeAccentColor);
             }
-            previewBtn.setBackground(prevBg);
+
+            GradientDrawable prevMask = new GradientDrawable();
+            prevMask.setShape(GradientDrawable.RECTANGLE);
+            prevMask.setCornerRadius(dpToPx(10));
+            prevMask.setColor(0xFFFFFFFF);
+            RippleDrawable prevRipple = new RippleDrawable(
+                    ColorStateList.valueOf(isPlayingThis ? 0x40DC2626 : getTranslucentColor(mThemeAccentColor, 35)),
+                    prevBg, prevMask);
+            previewBtn.setBackground(prevRipple);
 
             previewBtn.setClickable(true);
             previewBtn.setFocusable(true);
@@ -802,25 +1079,43 @@ public class SoundpackDownloadActivity extends Activity {
             actBg.setCornerRadius(dpToPx(10));
 
             if (isActive) {
-                actBg.setColor(0xFF10B981);
-                actionBtn.setText("ACTIVE ✓");
-                actionBtn.setTextColor(0xFFFFFFFF);
+                int successColor = mIsDarkTheme ? 0xFF34D399 : 0xFF059669;
+                actBg.setColor(0x2610B981);
+                actBg.setStroke(dpToPx(1), 0x5010B981);
+                actionBtn.setText("ACTIVE");
+                actionBtn.setTextColor(successColor);
+                setButtonIcon(actionBtn, R.drawable.ic_check, successColor);
             } else if (item.status.equals("Installed") || item.isDefault) {
-                actBg.setColor(mThemeAccentColor);
+                actBg.setColor(getTranslucentColor(mThemeAccentColor, 36));
+                actBg.setStroke(dpToPx(1), getTranslucentColor(mThemeAccentColor, 75));
                 actionBtn.setText("APPLY");
-                actionBtn.setTextColor(mIsDarkTheme ? 0xFF000000 : 0xFFFFFFFF);
+                actionBtn.setTextColor(mThemeAccentColor);
+                setButtonIcon(actionBtn, 0, 0);
                 actionBtn.setOnClickListener(v -> applySoundpack(item));
             } else if (item.status.equals("Downloading")) {
-                actBg.setColor(getTranslucentColor(mThemeAccentColor, 30));
+                actBg.setColor(getTranslucentColor(mThemeAccentColor, 20));
+                actBg.setStroke(dpToPx(1), getTranslucentColor(mThemeAccentColor, 50));
                 actionBtn.setText("DOWNLOADING (" + item.progress + "%)");
                 actionBtn.setTextColor(mThemeAccentColor);
+                setButtonIcon(actionBtn, 0, 0);
             } else {
-                actBg.setColor(mThemeAccentColor);
+                actBg.setColor(getTranslucentColor(mThemeAccentColor, 36));
+                actBg.setStroke(dpToPx(1), getTranslucentColor(mThemeAccentColor, 75));
                 actionBtn.setText("GET PACK");
-                actionBtn.setTextColor(mIsDarkTheme ? 0xFF000000 : 0xFFFFFFFF);
+                actionBtn.setTextColor(mThemeAccentColor);
+                setButtonIcon(actionBtn, 0, 0);
                 actionBtn.setOnClickListener(v -> startDownload(item));
             }
-            actionBtn.setBackground(actBg);
+
+            GradientDrawable actMask = new GradientDrawable();
+            actMask.setShape(GradientDrawable.RECTANGLE);
+            actMask.setCornerRadius(dpToPx(10));
+            actMask.setColor(0xFFFFFFFF);
+            RippleDrawable actRipple = new RippleDrawable(
+                    ColorStateList.valueOf(getTranslucentColor(mThemeAccentColor, 45)), actBg, actMask);
+            actionBtn.setBackground(actRipple);
+            actionBtn.setClickable(!isActive && !item.status.equals("Downloading"));
+            actionBtn.setFocusable(!isActive && !item.status.equals("Downloading"));
             bottomRow.addView(actionBtn);
 
             card.addView(bottomRow);
@@ -882,7 +1177,7 @@ public class SoundpackDownloadActivity extends Activity {
             }
 
             if (!item.downloadUrl.isEmpty()) {
-                Toast.makeText(this, "Downloading pack to preview sounds...", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Downloading pack to preview sounds", Toast.LENGTH_SHORT).show();
                 startDownload(item);
             }
         } catch (Exception e) {

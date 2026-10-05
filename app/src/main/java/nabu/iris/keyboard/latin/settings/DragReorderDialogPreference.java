@@ -21,6 +21,8 @@ public final class DragReorderDialogPreference extends DialogPreference {
     private Switch mSwitchKeys;
     private Switch mSwitchClipboard;
     private Switch mSwitchAi;
+    private Switch mSwitchTranslate;
+    private Switch mSwitchGif;
     private Switch mSwitchEmoji;
     private Switch mSwitchSettings;
 
@@ -43,6 +45,8 @@ public final class DragReorderDialogPreference extends DialogPreference {
         mSwitchKeys = (Switch) view.findViewById(R.id.switch_keys);
         mSwitchClipboard = (Switch) view.findViewById(R.id.switch_clipboard);
         mSwitchAi = (Switch) view.findViewById(R.id.switch_ai);
+        mSwitchTranslate = (Switch) view.findViewById(R.id.switch_translate);
+        mSwitchGif = (Switch) view.findViewById(R.id.switch_gif);
         mSwitchEmoji = (Switch) view.findViewById(R.id.switch_emoji);
         mSwitchSettings = (Switch) view.findViewById(R.id.switch_settings);
 
@@ -53,6 +57,8 @@ public final class DragReorderDialogPreference extends DialogPreference {
         styleSwitch(mSwitchKeys, accentColor, cardColor, strokeColor);
         styleSwitch(mSwitchClipboard, accentColor, cardColor, strokeColor);
         styleSwitch(mSwitchAi, accentColor, cardColor, strokeColor);
+        styleSwitch(mSwitchTranslate, accentColor, cardColor, strokeColor);
+        styleSwitch(mSwitchGif, accentColor, cardColor, strokeColor);
         styleSwitch(mSwitchEmoji, accentColor, cardColor, strokeColor);
         styleSwitch(mSwitchSettings, accentColor, cardColor, strokeColor);
 
@@ -72,9 +78,21 @@ public final class DragReorderDialogPreference extends DialogPreference {
         sw.setBackground(bg);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            int trackColor = Color.argb(60, Color.red(accentColor), Color.green(accentColor), Color.blue(accentColor));
-            sw.setThumbTintList(ColorStateList.valueOf(accentColor));
-            sw.setTrackTintList(ColorStateList.valueOf(trackColor));
+            int[][] states = new int[][] {
+                new int[] { android.R.attr.state_checked },
+                new int[] { -android.R.attr.state_checked }
+            };
+            int[] thumbColors = new int[] {
+                accentColor,
+                0xFF9E9E9E
+            };
+            int trackColor = Color.argb(70, Color.red(accentColor), Color.green(accentColor), Color.blue(accentColor));
+            int[] trackColors = new int[] {
+                trackColor,
+                0x33888888
+            };
+            sw.setThumbTintList(new ColorStateList(states, thumbColors));
+            sw.setTrackTintList(new ColorStateList(states, trackColors));
         }
     }
 
@@ -90,6 +108,12 @@ public final class DragReorderDialogPreference extends DialogPreference {
         }
         if (mSwitchAi != null) {
             mSwitchAi.setChecked(prefs.getBoolean("pref_utility_show_ai", true));
+        }
+        if (mSwitchTranslate != null) {
+            mSwitchTranslate.setChecked(prefs.getBoolean("pref_utility_show_translate", true));
+        }
+        if (mSwitchGif != null) {
+            mSwitchGif.setChecked(prefs.getBoolean("pref_utility_show_gif", true));
         }
         if (mSwitchEmoji != null) {
             mSwitchEmoji.setChecked(prefs.getBoolean("pref_show_emoji_key", true));
@@ -118,6 +142,12 @@ public final class DragReorderDialogPreference extends DialogPreference {
             }
             if (mSwitchAi != null) {
                 editor.putBoolean("pref_utility_show_ai", mSwitchAi.isChecked());
+            }
+            if (mSwitchTranslate != null) {
+                editor.putBoolean("pref_utility_show_translate", mSwitchTranslate.isChecked());
+            }
+            if (mSwitchGif != null) {
+                editor.putBoolean("pref_utility_show_gif", mSwitchGif.isChecked());
             }
             if (mSwitchEmoji != null) {
                 editor.putBoolean("pref_show_emoji_key", mSwitchEmoji.isChecked());

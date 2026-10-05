@@ -28,6 +28,7 @@ public final class AiSettingsHelper {
 
     private final LinearLayout mAiSettingsPanel;
     private final TextView mSettingsPanelTitle;
+    private final LinearLayout mSetupProvContainer;
     private final TextView mSetupProvOllama;
     private final TextView mSetupProvGemini;
     private final TextView mSetupProvCustom;
@@ -39,7 +40,7 @@ public final class AiSettingsHelper {
     private final EditText mSetupModelName;
     private final LinearLayout mSetupHeadersContainer;
     private final EditText mSetupHeadersJson;
-    private final TextView mSetupBackBtn;
+    private final android.widget.ImageView mSetupBackBtn;
     private final TextView mSetupSaveBtn;
 
     private final TextView mSetupGeminiLabel;
@@ -55,6 +56,7 @@ public final class AiSettingsHelper {
 
         mAiSettingsPanel = inputView.findViewById(R.id.ai_settings_panel);
         mSettingsPanelTitle = inputView.findViewById(R.id.settings_panel_title);
+        mSetupProvContainer = inputView.findViewById(R.id.setup_prov_container);
         mSetupProvOllama = inputView.findViewById(R.id.setup_prov_ollama);
         mSetupProvGemini = inputView.findViewById(R.id.setup_prov_gemini);
         mSetupProvCustom = inputView.findViewById(R.id.setup_prov_custom);
@@ -156,14 +158,23 @@ public final class AiSettingsHelper {
         boolean isDark = mController.isColorDark(backgroundColor);
 
         int normalColor = isDark ? 0xAAFFFFFF : 0x88000000;
-        int activeColor = customColor;
-        if (activeColor == 0 || mController.isColorMonochromeOrTooDark(activeColor)) {
-            activeColor = mContext.getResources().getColor(R.color.settings_accent);
+        int accentColor = customColor;
+        if (accentColor == 0 || mController.isColorMonochromeOrTooDark(accentColor)) {
+            accentColor = mContext.getResources().getColor(R.color.settings_accent);
         }
 
-        styleSegmentedButton(mSetupProvOllama, "ollama".equals(mConfigProvider), activeColor, isDark, normalColor);
-        styleSegmentedButton(mSetupProvGemini, "gemini".equals(mConfigProvider), activeColor, isDark, normalColor);
-        styleSegmentedButton(mSetupProvCustom, "custom".equals(mConfigProvider), activeColor, isDark, normalColor);
+        if (mSetupProvContainer != null) {
+            GradientDrawable grpBg = new GradientDrawable();
+            grpBg.setShape(GradientDrawable.RECTANGLE);
+            grpBg.setCornerRadius(mController.dpToPx(17));
+            grpBg.setColor(isDark ? 0x14FFFFFF : 0x08000000);
+            grpBg.setStroke(mController.dpToPx(1), isDark ? 0x22FFFFFF : 0x18000000);
+            mSetupProvContainer.setBackground(grpBg);
+        }
+
+        styleSegmentedButton(mSetupProvOllama, "ollama".equals(mConfigProvider), accentColor, isDark, normalColor);
+        styleSegmentedButton(mSetupProvGemini, "gemini".equals(mConfigProvider), accentColor, isDark, normalColor);
+        styleSegmentedButton(mSetupProvCustom, "custom".equals(mConfigProvider), accentColor, isDark, normalColor);
     }
 
     private void styleSegmentedButton(TextView v, boolean isActive, int accentColor, boolean isDark, int normalColor) {
@@ -173,11 +184,12 @@ public final class AiSettingsHelper {
 
         GradientDrawable badge = new GradientDrawable();
         badge.setShape(GradientDrawable.RECTANGLE);
-        badge.setCornerRadius(mController.dpToPx(16));
+        badge.setCornerRadius(mController.dpToPx(15));
         if (isActive) {
             badge.setColor(mController.getTranslucentColor(accentColor, 24));
+            badge.setStroke(mController.dpToPx(1), mController.getTranslucentColor(accentColor, 60));
         } else {
-            badge.setColor(isDark ? 0x0CFFFFFF : 0x05000000);
+            badge.setColor(Color.TRANSPARENT);
         }
         v.setBackground(badge);
     }
@@ -260,18 +272,17 @@ public final class AiSettingsHelper {
         if (mSetupSaveBtn != null) {
             GradientDrawable svBg = new GradientDrawable();
             svBg.setShape(GradientDrawable.RECTANGLE);
-            svBg.setCornerRadius(mController.dpToPx(16));
+            svBg.setCornerRadius(mController.dpToPx(14));
             svBg.setColor(accentColor);
             mSetupSaveBtn.setBackground(svBg);
-            mSetupSaveBtn.setTextColor(Color.WHITE);
+            mSetupSaveBtn.setTextColor(mController.isColorDark(accentColor) ? Color.WHITE : 0xFF1D1B20);
         }
         if (mSetupBackBtn != null) {
-            mSetupBackBtn.setTextColor(textColor);
-            mSetupBackBtn.setTextSize(22);
+            mSetupBackBtn.setColorFilter(textColor);
             GradientDrawable bkBg = new GradientDrawable();
             bkBg.setShape(GradientDrawable.RECTANGLE);
-            bkBg.setCornerRadius(mController.dpToPx(16));
-            bkBg.setColor(isDark ? 0x0AFFFFFF : 0x05000000);
+            bkBg.setCornerRadius(mController.dpToPx(15));
+            bkBg.setColor(isDark ? 0x14FFFFFF : 0x0A000000);
             mSetupBackBtn.setBackground(bkBg);
         }
         

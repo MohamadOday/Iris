@@ -7,6 +7,7 @@ package nabu.iris.keyboard.latin;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -17,6 +18,7 @@ import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.inputmethod.InputConnection;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -44,10 +46,21 @@ public final class GifPanelHelper {
     private final Context mContext;
 
     private final View mGifPanel;
+    private final LinearLayout mGifSearchBarContainer;
+    private final ImageView mGifSearchIcon;
     private final EditText mGifSearchInput;
     private final TextView mGifClearBtn;
     private final LinearLayout mGifItemsContainer;
     private final ScrollView mGifScrollView;
+
+    private final TextView mChipTrending;
+    private final TextView mChipLaugh;
+    private final TextView mChipLove;
+    private final TextView mChipClap;
+    private final TextView mChipDance;
+    private final TextView mChipCry;
+    private final TextView mChipParty;
+    private final TextView mChipWow;
 
     private final LruCache<String, byte[]> mGifCache = new LruCache<String, byte[]>(1536 * 1024) {
         @Override
@@ -70,10 +83,21 @@ public final class GifPanelHelper {
         mContext = controller.getContext();
 
         mGifPanel = inputView.findViewById(R.id.gif_panel);
+        mGifSearchBarContainer = inputView.findViewById(R.id.gif_search_bar_container);
+        mGifSearchIcon = inputView.findViewById(R.id.gif_search_icon);
         mGifSearchInput = inputView.findViewById(R.id.gif_search_input);
         mGifClearBtn = inputView.findViewById(R.id.gif_clear_btn);
         mGifItemsContainer = inputView.findViewById(R.id.gif_items_container);
         mGifScrollView = inputView.findViewById(R.id.gif_scroll_view);
+
+        mChipTrending = inputView.findViewById(R.id.gif_chip_trending);
+        mChipLaugh = inputView.findViewById(R.id.gif_chip_laugh);
+        mChipLove = inputView.findViewById(R.id.gif_chip_love);
+        mChipClap = inputView.findViewById(R.id.gif_chip_clap);
+        mChipDance = inputView.findViewById(R.id.gif_chip_dance);
+        mChipCry = inputView.findViewById(R.id.gif_chip_cry);
+        mChipParty = inputView.findViewById(R.id.gif_chip_party);
+        mChipWow = inputView.findViewById(R.id.gif_chip_wow);
 
         if (mGifScrollView != null) {
             mGifScrollView.getViewTreeObserver().addOnScrollChangedListener(mGifScrollListener);
@@ -135,6 +159,25 @@ public final class GifPanelHelper {
                 return false;
             });
         }
+
+        if (mChipTrending != null) mChipTrending.setOnClickListener(v -> searchCategory(""));
+        if (mChipLaugh != null) mChipLaugh.setOnClickListener(v -> searchCategory("laugh"));
+        if (mChipLove != null) mChipLove.setOnClickListener(v -> searchCategory("love"));
+        if (mChipClap != null) mChipClap.setOnClickListener(v -> searchCategory("clap"));
+        if (mChipDance != null) mChipDance.setOnClickListener(v -> searchCategory("dance"));
+        if (mChipCry != null) mChipCry.setOnClickListener(v -> searchCategory("cry"));
+        if (mChipParty != null) mChipParty.setOnClickListener(v -> searchCategory("party"));
+        if (mChipWow != null) mChipWow.setOnClickListener(v -> searchCategory("wow"));
+    }
+
+    private void searchCategory(String query) {
+        if (mGifSearchInput != null) {
+            mGifSearchInput.setText(query);
+            if (!query.isEmpty()) {
+                mGifSearchInput.setSelection(query.length());
+            }
+        }
+        loadGifs(query);
     }
 
     private List<GifSearchEngine.GifItem> getGifHistory() {
@@ -510,5 +553,61 @@ public final class GifPanelHelper {
             mGifItemsContainer.removeAllViews();
         }
         clearGifCache();
+    }
+
+    public void applyTheming(int accentColor, boolean isDark, int textColor, int hintColor) {
+        if (mGifPanel != null) {
+            mGifPanel.setBackgroundColor(mController.getKeyboardBackgroundColor());
+        }
+
+        if (mGifSearchBarContainer != null) {
+            boolean isFocused = (mController.getActiveInput() == mGifSearchInput);
+            GradientDrawable barBg = new GradientDrawable();
+            barBg.setShape(GradientDrawable.RECTANGLE);
+            barBg.setCornerRadius(mController.dpToPx(19));
+            barBg.setColor(isDark ? 0x18FFFFFF : 0x0A000000);
+            barBg.setStroke(mController.dpToPx(1), isFocused ? accentColor : (isDark ? 0x26FFFFFF : 0x1C000000));
+            mGifSearchBarContainer.setBackground(barBg);
+        }
+
+        if (mGifSearchIcon != null) {
+            mGifSearchIcon.setColorFilter(accentColor);
+        }
+
+        if (mGifSearchInput != null) {
+            mGifSearchInput.setTextColor(textColor);
+            mGifSearchInput.setHintTextColor(hintColor);
+        }
+
+        if (mGifClearBtn != null) {
+            GradientDrawable clrBg = new GradientDrawable();
+            clrBg.setShape(GradientDrawable.RECTANGLE);
+            clrBg.setCornerRadius(mController.dpToPx(13));
+            clrBg.setColor(0x18FF5252);
+            clrBg.setStroke(mController.dpToPx(1), 0x33FF5252);
+            mGifClearBtn.setBackground(clrBg);
+            mGifClearBtn.setTextColor(0xFFFF5252);
+        }
+
+        styleReactionChip(mChipTrending, accentColor, isDark);
+        styleReactionChip(mChipLaugh, accentColor, isDark);
+        styleReactionChip(mChipLove, accentColor, isDark);
+        styleReactionChip(mChipClap, accentColor, isDark);
+        styleReactionChip(mChipDance, accentColor, isDark);
+        styleReactionChip(mChipCry, accentColor, isDark);
+        styleReactionChip(mChipParty, accentColor, isDark);
+        styleReactionChip(mChipWow, accentColor, isDark);
+    }
+
+    private void styleReactionChip(TextView v, int accentColor, boolean isDark) {
+        if (v == null) return;
+        v.setTypeface(android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL));
+        GradientDrawable chipBg = new GradientDrawable();
+        chipBg.setShape(GradientDrawable.RECTANGLE);
+        chipBg.setCornerRadius(mController.dpToPx(13));
+        chipBg.setColor(isDark ? 0x14FFFFFF : 0x08000000);
+        chipBg.setStroke(mController.dpToPx(1), isDark ? 0x20FFFFFF : 0x14000000);
+        v.setBackground(chipBg);
+        v.setTextColor(isDark ? 0xCCFFFFFF : 0x88000000);
     }
 }

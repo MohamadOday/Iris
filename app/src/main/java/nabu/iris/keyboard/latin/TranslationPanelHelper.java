@@ -7,34 +7,42 @@ package nabu.iris.keyboard.latin;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.Html;
+import android.widget.Toast;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputConnection;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import nabu.iris.keyboard.R;
 import nabu.iris.keyboard.compat.PreferenceManagerCompat;
+import nabu.iris.keyboard.latin.settings.Settings;
 
 /**
- * Helper class to manage the translation workspace panel supporting Google Translate web scraping, MLKit offline database engines, and AI translation prompts.
+ * Helper class to manage the translation workspace panel supporting Google Translate API queries, MLKit offline database engines, and AI translation prompts.
  */
 public final class TranslationPanelHelper {
     private final ClipboardBarController mController;
@@ -42,10 +50,14 @@ public final class TranslationPanelHelper {
 
     private final LinearLayout mTranslatePanel;
     private final TextView mTranslateSourceBtn;
+    private final ImageView mTranslateArrow;
     private final TextView mTranslateTargetBtn;
     private final TextView mTranslateModeBtn;
+    private final LinearLayout mTranslateInputContainer;
     private final EditText mTranslateInput;
-    private final TextView mTranslateClearBtn;
+    private final ImageView mTranslateClearBtn;
+    private final TextView mTranslatePasteBtn;
+    private final LinearLayout mTranslateResultContainer;
     private final TextView mTranslateResultPreview;
     private final TextView mTranslateInsertBtn;
     private final ProgressBar mTranslateProgressBar;
@@ -61,6 +73,16 @@ public final class TranslationPanelHelper {
     private final Handler mTranslateHandler = new Handler(Looper.getMainLooper());
     private Runnable mTranslateRunnable;
 
+    private static final int MAX_CACHE_SIZE = 100;
+    private static final Map<String, String> sTranslationCache = Collections.synchronizedMap(
+            new LinkedHashMap<String, String>(MAX_CACHE_SIZE, 0.75f, true) {
+                @Override
+                protected boolean removeEldestEntry(Map.Entry<String, String> eldest) {
+                    return size() > MAX_CACHE_SIZE;
+                }
+            }
+    );
+
     private static final String[] mLangNames = {"Auto-detect", "English", "Spanish", "French", "German", "Italian", "Portuguese", "Chinese", "Japanese", "Korean", "Russian", "Arabic", "Hindi", "Turkish", "Polish", "Dutch"};
     private static final String[] mLangCodes = {"auto", "en", "es", "fr", "de", "it", "pt", "zh", "ja", "ko", "ru", "ar", "hi", "tr", "pl", "nl"};
     private static final String[] mTgtLangNames = {"English", "Spanish", "French", "German", "Italian", "Portuguese", "Chinese", "Japanese", "Korean", "Russian", "Arabic", "Hindi", "Turkish", "Polish", "Dutch"};
@@ -72,20 +94,35 @@ public final class TranslationPanelHelper {
 
         mTranslatePanel = inputView.findViewById(R.id.translate_panel);
         mTranslateSourceBtn = inputView.findViewById(R.id.translate_source_btn);
+        mTranslateArrow = inputView.findViewById(R.id.translate_arrow);
         mTranslateTargetBtn = inputView.findViewById(R.id.translate_target_btn);
         mTranslateModeBtn = inputView.findViewById(R.id.translate_mode_btn);
+        mTranslateInputContainer = inputView.findViewById(R.id.translate_input_container);
         mTranslateInput = inputView.findViewById(R.id.translate_input);
         mTranslateClearBtn = inputView.findViewById(R.id.translate_clear_btn);
+        mTranslatePasteBtn = inputView.findViewById(R.id.translate_paste_btn);
+        mTranslateResultContainer = inputView.findViewById(R.id.translate_result_container);
         mTranslateResultPreview = inputView.findViewById(R.id.translate_result_preview);
         mTranslateInsertBtn = inputView.findViewById(R.id.translate_insert_btn);
         mTranslateProgressBar = inputView.findViewById(R.id.translate_progress_bar);
         mTranslateDownloadLabel = inputView.findViewById(R.id.translate_download_label);
 
-        TextView translateArrow = inputView.findViewById(R.id.translate_arrow);
-        if (translateArrow != null) {
-            boolean isRtl = mContext.getResources().getConfiguration().getLayoutDirection() == View.LAYOUT_DIRECTION_RTL;
-            translateArrow.setText(isRtl ? " ← " : " → ");
+        if (mTranslateArrow != null) {
+            mTranslateArrow.setOnClickListener(v -> swapLanguages());
         }
+
+        SharedPreferences prefs = PreferenceManagerCompat.getDeviceSharedPreferences(mContext);
+        mTranslateSourceLang = prefs.getString("pref_translate_source_lang", "auto");
+        mTranslateTargetLang = prefs.getString("pref_translate_target_lang", "es");
+        mTranslateMode = prefs.getString("pref_translate_mode", "scraping");
+
+        if (mTranslateSourceBtn != null) {
+            mTranslateSourceBtn.setText(getLanguageName(mTranslateSourceLang));
+        }
+        if (mTranslateTargetBtn != null) {
+            mTranslateTargetBtn.setText(getLanguageName(mTranslateTargetLang));
+        }
+        updateTranslateModeButton();
 
         mController.configureSimulatedInput(mTranslateInput);
 
@@ -100,10 +137,20 @@ public final class TranslationPanelHelper {
         if (mTranslatePanel != null) {
             mTranslatePanel.setVisibility(View.VISIBLE);
             SharedPreferences prefs = PreferenceManagerCompat.getDeviceSharedPreferences(mContext);
+            mTranslateSourceLang = prefs.getString("pref_translate_source_lang", "auto");
+            mTranslateTargetLang = prefs.getString("pref_translate_target_lang", "es");
             mTranslateMode = prefs.getString("pref_translate_mode", "scraping");
-            
-            mController.setActiveInput(mTranslateInput);
+
+            if (mTranslateSourceBtn != null) {
+                mTranslateSourceBtn.setText(getLanguageName(mTranslateSourceLang));
+            }
+            if (mTranslateTargetBtn != null) {
+                mTranslateTargetBtn.setText(getLanguageName(mTranslateTargetLang));
+            }
             updateTranslateModeButton();
+            updateInputContainerFocus();
+
+            mController.setActiveInput(mTranslateInput);
             triggerTranslation();
         }
     }
@@ -136,11 +183,34 @@ public final class TranslationPanelHelper {
             });
         }
 
+        if (mTranslatePasteBtn != null && mTranslateInput != null) {
+            mTranslatePasteBtn.setOnClickListener(v -> {
+                String clipText = mController.getMostRecentClipboardText();
+                if (clipText != null && !clipText.isEmpty()) {
+                    String text = mTranslateInput.getText().toString();
+                    int selStart = mTranslateInput.getSelectionStart();
+                    int selEnd = mTranslateInput.getSelectionEnd();
+                    if (selStart >= 0 && selEnd >= 0) {
+                        int min = Math.min(selStart, selEnd);
+                        int max = Math.max(selStart, selEnd);
+                        String newText = text.substring(0, min) + clipText + text.substring(max);
+                        mTranslateInput.setText(newText);
+                        mTranslateInput.setSelection(min + clipText.length());
+                    } else {
+                        mTranslateInput.append(clipText);
+                        mTranslateInput.setSelection(mTranslateInput.getText().length());
+                    }
+                } else {
+                    Toast.makeText(mContext, "Clipboard is empty", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
         if (mTranslateInsertBtn != null) {
             mTranslateInsertBtn.setOnClickListener(v -> {
                 if (mTranslateResultPreview != null) {
                     String output = mTranslateResultPreview.getText().toString();
-                    if (!output.isEmpty() && !output.startsWith("Error:") && !output.equals("Translating...") && !output.equals("Checking offline models...")) {
+                    if (!output.isEmpty() && !output.startsWith("Error:") && !output.equals("Translating") && !output.equals("Checking offline models")) {
                         if (mContext instanceof LatinIME) {
                             LatinIME ime = (LatinIME) mContext;
                             InputConnection conn = ime.getCurrentInputConnection();
@@ -164,11 +234,14 @@ public final class TranslationPanelHelper {
 
                 @Override
                 public void afterTextChanged(final android.text.Editable s) {
+                    if (mTranslateClearBtn != null) {
+                        mTranslateClearBtn.setVisibility(s != null && s.length() > 0 ? View.VISIBLE : View.GONE);
+                    }
                     if (mTranslateRunnable != null) {
                         mTranslateHandler.removeCallbacks(mTranslateRunnable);
                     }
                     mTranslateRunnable = () -> triggerTranslation();
-                    mTranslateHandler.postDelayed(mTranslateRunnable, 500);
+                    mTranslateHandler.postDelayed(mTranslateRunnable, 900);
                 }
             });
         }
@@ -217,7 +290,7 @@ public final class TranslationPanelHelper {
             return;
         }
 
-        mTranslateResultPreview.setText("Translating...");
+        mTranslateResultPreview.setText("Translating");
         mTranslateInsertBtn.setVisibility(View.GONE);
         showTranslateProgress(true);
 
@@ -231,19 +304,32 @@ public final class TranslationPanelHelper {
     }
 
     private void translateViaScraping(final String text) {
+        final String cacheKey = mTranslateSourceLang + ":" + mTranslateTargetLang + ":" + text;
+        String cached = sTranslationCache.get(cacheKey);
+        if (cached != null) {
+            final String cachedResult = cached;
+            mTranslateHandler.post(() -> {
+                showTranslateProgress(false);
+                mTranslateResultPreview.setText(cachedResult);
+                mTranslateInsertBtn.setVisibility(View.VISIBLE);
+            });
+            return;
+        }
+
         AiCopilotManager.getSharedExecutor().execute(() -> {
             HttpURLConnection conn = null;
             try {
                 String encodedText = URLEncoder.encode(text, "UTF-8");
-                String urlStr = "https://translate.google.com/m?sl=" + mTranslateSourceLang + "&tl=" + mTranslateTargetLang + "&q=" + encodedText;
+                String urlStr = "https://translate.googleapis.com/translate_a/single?client=dict-chrome-ex&sl="
+                        + mTranslateSourceLang + "&tl=" + mTranslateTargetLang + "&dt=t&q=" + encodedText;
                 URL url = new URL(urlStr);
-                
+
                 conn = (HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("GET");
-                conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Android; Mobile)");
-                conn.setConnectTimeout(5000);
-                conn.setReadTimeout(5000);
-                
+                conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36");
+                conn.setConnectTimeout(6000);
+                conn.setReadTimeout(6000);
+
                 int responseCode = conn.getResponseCode();
                 if (responseCode == HttpURLConnection.HTTP_OK) {
                     BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
@@ -253,40 +339,87 @@ public final class TranslationPanelHelper {
                         response.append(line);
                     }
                     in.close();
-                    
-                    String html = response.toString();
-                    
-                    int startIdx = html.indexOf("<div class=\"result-container\">");
-                    if (startIdx == -1) {
-                        startIdx = html.indexOf("<div class=\"t0\">");
-                    }
-                    if (startIdx != -1) {
-                        int contentStart = html.indexOf(">", startIdx) + 1;
-                        int endIdx = html.indexOf("</div>", contentStart);
-                        if (endIdx != -1) {
-                            String rawResult = html.substring(contentStart, endIdx);
-                            final String translated = Html.fromHtml(rawResult).toString();
-                            
-                            mTranslateHandler.post(() -> {
-                                showTranslateProgress(false);
-                                mTranslateResultPreview.setText(translated);
-                                mTranslateInsertBtn.setVisibility(View.VISIBLE);
-                            });
-                            return;
+
+                    JSONArray root = new JSONArray(response.toString());
+                    JSONArray sentences = root.getJSONArray(0);
+                    StringBuilder sb = new StringBuilder();
+                    for (int i = 0; i < sentences.length(); i++) {
+                        JSONArray segment = sentences.getJSONArray(i);
+                        if (segment.length() > 0 && !segment.isNull(0)) {
+                            sb.append(segment.getString(0));
                         }
                     }
-                    postTranslationFailure("Error parsing HTML response.");
-                } else {
-                    postTranslationFailure("HTTP Error: " + responseCode);
+                    String translated = sb.toString().trim();
+                    if (!translated.isEmpty()) {
+                        sTranslationCache.put(cacheKey, translated);
+                        final String finalResult = translated;
+                        mTranslateHandler.post(() -> {
+                            showTranslateProgress(false);
+                            mTranslateResultPreview.setText(finalResult);
+                            mTranslateInsertBtn.setVisibility(View.VISIBLE);
+                        });
+                        return;
+                    }
                 }
             } catch (Exception e) {
-                postTranslationFailure("Network Error: " + e.getMessage());
+                // Primary endpoint failed, fallback to secondary endpoint
             } finally {
                 if (conn != null) {
                     conn.disconnect();
                 }
             }
+
+            translateViaFallback(text, cacheKey);
         });
+    }
+
+    private void translateViaFallback(final String text, final String cacheKey) {
+        HttpURLConnection conn = null;
+        try {
+            String encodedText = URLEncoder.encode(text, "UTF-8");
+            String source = "auto".equals(mTranslateSourceLang) ? "autodetect" : mTranslateSourceLang;
+            String pair = source + "|" + mTranslateTargetLang;
+            String urlStr = "https://api.mymemory.translated.net/get?q=" + encodedText + "&langpair=" + pair;
+            URL url = new URL(urlStr);
+
+            conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36");
+            conn.setConnectTimeout(6000);
+            conn.setReadTimeout(6000);
+
+            int responseCode = conn.getResponseCode();
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
+                StringBuilder response = new StringBuilder();
+                String line;
+                while ((line = in.readLine()) != null) {
+                    response.append(line);
+                }
+                in.close();
+
+                JSONObject json = new JSONObject(response.toString());
+                JSONObject responseData = json.optJSONObject("responseData");
+                String rawTranslated = responseData != null ? responseData.optString("translatedText") : "";
+                if (!rawTranslated.isEmpty() && !rawTranslated.contains("MYMEMORY WARNING")) {
+                    final String translated = Html.fromHtml(rawTranslated).toString().trim();
+                    sTranslationCache.put(cacheKey, translated);
+                    mTranslateHandler.post(() -> {
+                        showTranslateProgress(false);
+                        mTranslateResultPreview.setText(translated);
+                        mTranslateInsertBtn.setVisibility(View.VISIBLE);
+                    });
+                    return;
+                }
+            }
+            postTranslationFailure("Rate limit encountered. Please retry shortly.");
+        } catch (Exception e) {
+            postTranslationFailure("Network error: " + e.getMessage());
+        } finally {
+            if (conn != null) {
+                conn.disconnect();
+            }
+        }
     }
 
     private void translateViaMlKit(final String text) {
@@ -334,7 +467,7 @@ public final class TranslationPanelHelper {
 
             @Override
             public void onTranslatingOffline() {
-                mTranslateHandler.post(() -> mTranslateResultPreview.setText("Translating offline..."));
+                mTranslateHandler.post(() -> mTranslateResultPreview.setText("Translating offline"));
             }
         });
     }
@@ -380,6 +513,9 @@ public final class TranslationPanelHelper {
     }
 
     private String getLanguageName(String code) {
+        if ("auto".equals(code)) {
+            return "Auto-detect";
+        }
         switch (code) {
             case "en": return "English";
             case "es": return "Spanish";
@@ -408,7 +544,7 @@ public final class TranslationPanelHelper {
         mDownloadProgress = 0;
         if (mTranslateDownloadLabel != null) {
             mTranslateDownloadLabel.setVisibility(View.VISIBLE);
-            mTranslateDownloadLabel.setText("Downloading... 0%");
+            mTranslateDownloadLabel.setText("Downloading: 0%");
         }
         if (mTranslateProgressBar != null) {
             mTranslateProgressBar.setVisibility(View.VISIBLE);
@@ -421,7 +557,7 @@ public final class TranslationPanelHelper {
                     int step = mDownloadProgress < 50 ? 4 : 2;
                     mDownloadProgress = Math.min(90, mDownloadProgress + step);
                     if (mTranslateDownloadLabel != null) {
-                        mTranslateDownloadLabel.setText("Downloading... " + mDownloadProgress + "%");
+                        mTranslateDownloadLabel.setText("Downloading: " + mDownloadProgress + "%");
                     }
                     if (mTranslateProgressBar != null) {
                         mTranslateProgressBar.setProgress(mDownloadProgress);
@@ -442,7 +578,7 @@ public final class TranslationPanelHelper {
             mTranslateProgressBar.setProgress(100);
         }
         if (mTranslateDownloadLabel != null) {
-            mTranslateDownloadLabel.setText("Downloading... 100%");
+            mTranslateDownloadLabel.setText("Downloading: 100%");
         }
         mTranslateHandler.postDelayed(() -> {
             if (mTranslateDownloadLabel != null) mTranslateDownloadLabel.setVisibility(View.GONE);
@@ -472,6 +608,28 @@ public final class TranslationPanelHelper {
         });
     }
 
+    private void swapLanguages() {
+        if ("auto".equals(mTranslateSourceLang)) {
+            Toast.makeText(mContext, "Cannot swap when source is Auto-detect", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        String tempCode = mTranslateSourceLang;
+        mTranslateSourceLang = mTranslateTargetLang;
+        mTranslateTargetLang = tempCode;
+        SharedPreferences prefs = PreferenceManagerCompat.getDeviceSharedPreferences(mContext);
+        prefs.edit()
+                .putString("pref_translate_source_lang", mTranslateSourceLang)
+                .putString("pref_translate_target_lang", mTranslateTargetLang)
+                .apply();
+        if (mTranslateSourceBtn != null) {
+            mTranslateSourceBtn.setText(getLanguageName(mTranslateSourceLang));
+        }
+        if (mTranslateTargetBtn != null) {
+            mTranslateTargetBtn.setText(getLanguageName(mTranslateTargetLang));
+        }
+        triggerTranslation();
+    }
+
     private void showLanguageDialog(final boolean isSource) {
         AlertDialog.Builder builder = new AlertDialog.Builder(
                 nabu.iris.keyboard.latin.utils.DialogUtils.getPlatformDialogThemeContext(mContext));
@@ -479,19 +637,31 @@ public final class TranslationPanelHelper {
         
         final String[] names = isSource ? mLangNames : mTgtLangNames;
         final String[] codes = isSource ? mLangCodes : mTgtLangCodes;
+        String currentCode = isSource ? mTranslateSourceLang : mTranslateTargetLang;
+        int checkedIndex = -1;
+        for (int i = 0; i < codes.length; i++) {
+            if (codes[i].equals(currentCode)) {
+                checkedIndex = i;
+                break;
+            }
+        }
         
-        builder.setItems(names, (dialog, which) -> {
+        builder.setSingleChoiceItems(names, checkedIndex, (dialog, which) -> {
+            SharedPreferences prefs = PreferenceManagerCompat.getDeviceSharedPreferences(mContext);
             if (isSource) {
                 mTranslateSourceLang = codes[which];
+                prefs.edit().putString("pref_translate_source_lang", mTranslateSourceLang).apply();
                 if (mTranslateSourceBtn != null) {
                     mTranslateSourceBtn.setText(names[which]);
                 }
             } else {
                 mTranslateTargetLang = codes[which];
+                prefs.edit().putString("pref_translate_target_lang", mTranslateTargetLang).apply();
                 if (mTranslateTargetBtn != null) {
                     mTranslateTargetBtn.setText(names[which]);
                 }
             }
+            dialog.dismiss();
             triggerTranslation();
         });
         
@@ -518,17 +688,28 @@ public final class TranslationPanelHelper {
         if (mTranslateSourceBtn != null) {
             GradientDrawable btnBg = new GradientDrawable();
             btnBg.setShape(GradientDrawable.RECTANGLE);
-            btnBg.setCornerRadius(mController.dpToPx(8));
-            btnBg.setColor(isDark ? 0x14FFFFFF : 0x08000000);
+            btnBg.setCornerRadius(mController.dpToPx(14));
+            btnBg.setColor(isDark ? 0x18FFFFFF : 0x0E000000);
+            btnBg.setStroke(mController.dpToPx(1), isDark ? 0x24FFFFFF : 0x1A000000);
             mTranslateSourceBtn.setBackground(btnBg);
             mTranslateSourceBtn.setTextColor(textColor);
+        }
+
+        if (mTranslateArrow != null) {
+            mTranslateArrow.setColorFilter(accentColor);
+            GradientDrawable arrBg = new GradientDrawable();
+            arrBg.setShape(GradientDrawable.RECTANGLE);
+            arrBg.setCornerRadius(mController.dpToPx(14));
+            arrBg.setColor(isDark ? 0x14FFFFFF : 0x0A000000);
+            mTranslateArrow.setBackground(arrBg);
         }
 
         if (mTranslateTargetBtn != null) {
             GradientDrawable btnBg = new GradientDrawable();
             btnBg.setShape(GradientDrawable.RECTANGLE);
-            btnBg.setCornerRadius(mController.dpToPx(8));
-            btnBg.setColor(isDark ? 0x14FFFFFF : 0x08000000);
+            btnBg.setCornerRadius(mController.dpToPx(14));
+            btnBg.setColor(isDark ? 0x18FFFFFF : 0x0E000000);
+            btnBg.setStroke(mController.dpToPx(1), isDark ? 0x24FFFFFF : 0x1A000000);
             mTranslateTargetBtn.setBackground(btnBg);
             mTranslateTargetBtn.setTextColor(textColor);
         }
@@ -536,19 +717,47 @@ public final class TranslationPanelHelper {
         if (mTranslateModeBtn != null) {
             GradientDrawable btnBg = new GradientDrawable();
             btnBg.setShape(GradientDrawable.RECTANGLE);
-            btnBg.setCornerRadius(mController.dpToPx(8));
-            btnBg.setColor(mController.getTranslucentColor(accentColor, 12));
+            btnBg.setCornerRadius(mController.dpToPx(14));
+            btnBg.setColor(mController.getTranslucentColor(accentColor, 18));
+            btnBg.setStroke(mController.dpToPx(1), mController.getTranslucentColor(accentColor, 40));
             mTranslateModeBtn.setBackground(btnBg);
             mTranslateModeBtn.setTextColor(accentColor);
         }
 
+        updateInputContainerFocus();
+
         if (mTranslateInput != null) {
-            mController.styleConfigField(mTranslateInput, mController.getActiveInput() == mTranslateInput);
+            mTranslateInput.setBackground(null);
+            mTranslateInput.setTextColor(textColor);
+            mTranslateInput.setHintTextColor(hintColor);
         }
 
         if (mTranslateClearBtn != null) {
-            mTranslateClearBtn.setTextColor(0xFFFF5252);
-            mTranslateClearBtn.setBackground(null);
+            mTranslateClearBtn.setColorFilter(isDark ? 0xAAFFFFFF : 0x88000000);
+            GradientDrawable clrBg = new GradientDrawable();
+            clrBg.setShape(GradientDrawable.RECTANGLE);
+            clrBg.setCornerRadius(mController.dpToPx(14));
+            clrBg.setColor(isDark ? 0x18FFFFFF : 0x0E000000);
+            mTranslateClearBtn.setBackground(clrBg);
+        }
+
+        if (mTranslatePasteBtn != null) {
+            GradientDrawable pbBg = new GradientDrawable();
+            pbBg.setShape(GradientDrawable.RECTANGLE);
+            pbBg.setCornerRadius(mController.dpToPx(14));
+            pbBg.setColor(isDark ? 0x1AFFFFFF : 0x0E000000);
+            pbBg.setStroke(mController.dpToPx(1), isDark ? 0x24FFFFFF : 0x1A000000);
+            mTranslatePasteBtn.setBackground(pbBg);
+            mTranslatePasteBtn.setTextColor(textColor);
+        }
+
+        if (mTranslateResultContainer != null) {
+            GradientDrawable resBg = new GradientDrawable();
+            resBg.setShape(GradientDrawable.RECTANGLE);
+            resBg.setCornerRadius(mController.dpToPx(16));
+            resBg.setColor(isDark ? 0x14FFFFFF : 0x0A000000);
+            resBg.setStroke(mController.dpToPx(1), isDark ? 0x22FFFFFF : 0x18000000);
+            mTranslateResultContainer.setBackground(resBg);
         }
 
         if (mTranslateResultPreview != null) {
@@ -558,12 +767,31 @@ public final class TranslationPanelHelper {
         if (mTranslateInsertBtn != null) {
             GradientDrawable insBg = new GradientDrawable();
             insBg.setShape(GradientDrawable.RECTANGLE);
-            insBg.setCornerRadius(mController.dpToPx(16));
-            insBg.setColor(isDark ? 0x2200E676 : 0x1A00E676);
-            insBg.setStroke(mController.dpToPx(1), 0xFF00E676);
+            insBg.setCornerRadius(mController.dpToPx(14));
+            insBg.setColor(mController.getTranslucentColor(accentColor, 30));
+            insBg.setStroke(mController.dpToPx(1), mController.getTranslucentColor(accentColor, 65));
             mTranslateInsertBtn.setBackground(insBg);
-            mTranslateInsertBtn.setTextColor(0xFF00E676);
+            mTranslateInsertBtn.setTextColor(accentColor);
         }
+    }
+
+    public void updateInputContainerFocus() {
+        if (mTranslateInputContainer == null) return;
+        SharedPreferences prefs = PreferenceManagerCompat.getDeviceSharedPreferences(mContext);
+        int customColor = Settings.readKeyboardColor(prefs, mContext);
+        int backgroundColor = mController.getKeyboardBackgroundColor();
+        boolean isDark = mController.isColorDark(backgroundColor);
+        int accentColor = customColor;
+        if (accentColor == 0 || mController.isColorMonochromeOrTooDark(accentColor)) {
+            accentColor = mContext.getResources().getColor(R.color.settings_accent);
+        }
+        boolean isFocused = (mController.getActiveInput() == mTranslateInput);
+        GradientDrawable inpBg = new GradientDrawable();
+        inpBg.setShape(GradientDrawable.RECTANGLE);
+        inpBg.setCornerRadius(mController.dpToPx(20));
+        inpBg.setColor(isDark ? 0x14FFFFFF : 0x0A000000);
+        inpBg.setStroke(mController.dpToPx(1.5f), isFocused ? accentColor : (isDark ? 0x22FFFFFF : 0x1A000000));
+        mTranslateInputContainer.setBackground(inpBg);
     }
 
     public void onDestroy() {

@@ -128,8 +128,8 @@
     <string name="privacy_policy">Privacy Policy</string>
     <string name="license">License</string>
     <string name="show_emoji_key">Show emoji key</string>
-    <string name="emoji_list">Emoji list</string>
-    <string name="emoji_list_summary">Comma-separated list of emojis to show in the emoji panel</string>
+    <string name="emoji_list">Pinned Sticky Emojis</string>
+    <string name="emoji_list_summary">Comma-separated list of favorite sticky emojis shown in the first tab</string>
     <string name="utility_toolbar_category">Utility Toolbar Customization</string>
     <string name="pref_utility_button_order_title">Configure Toolbar Buttons</string>
     <string name="pref_utility_background_color_title">Toolbar Background Color</string>

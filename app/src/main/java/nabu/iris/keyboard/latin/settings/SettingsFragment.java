@@ -90,6 +90,17 @@ public final class SettingsFragment extends InputMethodSettingsFragment {
             }
         });
 
+        Preference soundpackPref = findPreference("soundpack_store");
+        if (soundpackPref != null) {
+            soundpackPref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference preference) {
+                    startActivity(new Intent(getActivity(), SoundpackDownloadActivity.class));
+                    return true;
+                }
+            });
+        }
+
         findPreference("export_settings").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
             @Override
             public boolean onPreferenceClick(Preference preference) {

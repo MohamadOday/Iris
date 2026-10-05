@@ -26,6 +26,7 @@ public final class AiSettingsFragment extends SubScreenFragment {
     private static final String CAT_GEMINI = "cat_gemini";
     private static final String CAT_OLLAMA = "cat_ollama";
     private static final String CAT_CUSTOM = "cat_custom";
+    private static final String CAT_ADVANCED = "cat_advanced";
     private static final String KEY_TEST_CONNECTION = "pref_ai_test_connection";
     private static final String KEY_SYSTEM_PROMPT = "pref_ai_system_prompt";
     private static final String KEY_TEMPERATURE = "pref_ai_temperature";
@@ -33,10 +34,20 @@ public final class AiSettingsFragment extends SubScreenFragment {
     private static final String KEY_AI_ENABLED = "pref_ai_enabled";
     private static final String KEY_GEMINI_MODEL = "pref_gemini_model";
 
+    private PreferenceCategory mCatGemini;
+    private PreferenceCategory mCatOllama;
+    private PreferenceCategory mCatCustom;
+    private PreferenceCategory mCatAdvanced;
+
     @Override
     public void onCreate(final Bundle icicle) {
         super.onCreate(icicle);
         addPreferencesFromResource(R.xml.prefs_screen_ai);
+
+        mCatGemini = (PreferenceCategory) findPreference(CAT_GEMINI);
+        mCatOllama = (PreferenceCategory) findPreference(CAT_OLLAMA);
+        mCatCustom = (PreferenceCategory) findPreference(CAT_CUSTOM);
+        mCatAdvanced = (PreferenceCategory) findPreference(CAT_ADVANCED);
 
         final Preference testPref = findPreference(KEY_TEST_CONNECTION);
         if (testPref != null) {
@@ -74,6 +85,8 @@ public final class AiSettingsFragment extends SubScreenFragment {
         final SharedPreferences prefs = getSharedPreferences();
         final boolean aiEnabled = prefs.getBoolean(KEY_AI_ENABLED, true);
         final String provider = Settings.readAiProvider(prefs);
+        final android.preference.PreferenceScreen screen = getPreferenceScreen();
+        if (screen == null) return;
 
         final ListPreference providerPref = (ListPreference) findPreference(Settings.PREF_AI_PROVIDER);
         if (providerPref != null) {
@@ -88,19 +101,23 @@ public final class AiSettingsFragment extends SubScreenFragment {
             sysPromptPref.setEnabled(aiEnabled);
         }
 
-        final PreferenceCategory catGemini = (PreferenceCategory) findPreference(CAT_GEMINI);
-        if (catGemini != null) {
-            catGemini.setEnabled(aiEnabled && "gemini".equals(provider));
-        }
+        if (mCatGemini != null) screen.removePreference(mCatGemini);
+        if (mCatOllama != null) screen.removePreference(mCatOllama);
+        if (mCatCustom != null) screen.removePreference(mCatCustom);
+        if (mCatAdvanced != null) screen.removePreference(mCatAdvanced);
 
-        final PreferenceCategory catOllama = (PreferenceCategory) findPreference(CAT_OLLAMA);
-        if (catOllama != null) {
-            catOllama.setEnabled(aiEnabled && "ollama".equals(provider));
-        }
+        if (aiEnabled) {
+            if ("gemini".equals(provider) && mCatGemini != null) {
+                screen.addPreference(mCatGemini);
+            } else if ("custom".equals(provider) && mCatCustom != null) {
+                screen.addPreference(mCatCustom);
+            } else if (mCatOllama != null) {
+                screen.addPreference(mCatOllama);
+            }
 
-        final PreferenceCategory catCustom = (PreferenceCategory) findPreference(CAT_CUSTOM);
-        if (catCustom != null) {
-            catCustom.setEnabled(aiEnabled && "custom".equals(provider));
+            if (mCatAdvanced != null) {
+                screen.addPreference(mCatAdvanced);
+            }
         }
 
         final Preference testPref = findPreference(KEY_TEST_CONNECTION);
@@ -161,7 +178,7 @@ public final class AiSettingsFragment extends SubScreenFragment {
 
         final AlertDialog loadingDialog = new AlertDialog.Builder(getActivity())
                 .setTitle("Testing Connection")
-                .setMessage("Sending ping request to " + provider.toUpperCase() + " endpoint...")
+                .setMessage("Sending ping request to " + provider.toUpperCase() + " endpoint.")
                 .setCancelable(false)
                 .show();
 

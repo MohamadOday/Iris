@@ -1,13 +1,137 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Dedicated Full Emoji View Panel Container -->
+<!-- Dedicated Full Material You 3 Emoji View Panel Container -->
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/emoji_panel"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:visibility="gone">
+    android:visibility="gone"
+    android:paddingStart="8dp"
+    android:paddingEnd="8dp"
+    android:paddingTop="4dp"
+    android:paddingBottom="6dp">
 
+    <!-- Material 3 Emoji Category Strip -->
+    <HorizontalScrollView
+        android:id="@+id/emoji_category_scroll"
+        android:layout_width="match_parent"
+        android:layout_height="32dp"
+        android:scrollbars="none"
+        android:layout_marginBottom="4dp">
+        <LinearLayout
+            android:id="@+id/emoji_category_container"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/emoji_cat_sticky"
+                android:layout_width="wrap_content"
+                android:layout_height="26dp"
+                android:text="📌 Sticky"
+                android:textSize="11sp"
+                android:gravity="center"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:layout_marginEnd="4dp"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <TextView
+                android:id="@+id/emoji_cat_smileys"
+                android:layout_width="wrap_content"
+                android:layout_height="26dp"
+                android:text="😀 Smileys"
+                android:textSize="11sp"
+                android:gravity="center"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:layout_marginEnd="4dp"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <TextView
+                android:id="@+id/emoji_cat_people"
+                android:layout_width="wrap_content"
+                android:layout_height="26dp"
+                android:text="👋 People"
+                android:textSize="11sp"
+                android:gravity="center"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:layout_marginEnd="4dp"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <TextView
+                android:id="@+id/emoji_cat_animals"
+                android:layout_width="wrap_content"
+                android:layout_height="26dp"
+                android:text="🐶 Nature"
+                android:textSize="11sp"
+                android:gravity="center"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:layout_marginEnd="4dp"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <TextView
+                android:id="@+id/emoji_cat_food"
+                android:layout_width="wrap_content"
+                android:layout_height="26dp"
+                android:text="🍕 Food"
+                android:textSize="11sp"
+                android:gravity="center"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:layout_marginEnd="4dp"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <TextView
+                android:id="@+id/emoji_cat_activities"
+                android:layout_width="wrap_content"
+                android:layout_height="26dp"
+                android:text="⚽ Activity"
+                android:textSize="11sp"
+                android:gravity="center"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:layout_marginEnd="4dp"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <TextView
+                android:id="@+id/emoji_cat_objects"
+                android:layout_width="wrap_content"
+                android:layout_height="26dp"
+                android:text="💡 Objects"
+                android:textSize="11sp"
+                android:gravity="center"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:layout_marginEnd="4dp"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <TextView
+                android:id="@+id/emoji_cat_symbols"
+                android:layout_width="wrap_content"
+                android:layout_height="26dp"
+                android:text="❤️ Symbols"
+                android:textSize="11sp"
+                android:gravity="center"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:clickable="true"
+                android:focusable="true" />
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <!-- Material 3 Emoji Grid Container -->
     <ScrollView
         android:id="@+id/emoji_scroll_view"
         android:layout_width="match_parent"
@@ -20,22 +144,25 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="8dp" />
+            android:padding="4dp" />
     </ScrollView>
 
+    <!-- Bottom Controls (Backspace Tonal Action Button) -->
     <LinearLayout
+        android:id="@+id/emoji_bottom_bar"
         android:layout_width="match_parent"
-        android:layout_height="40dp"
+        android:layout_height="36dp"
         android:orientation="horizontal"
         android:gravity="end|center_vertical"
-        android:paddingEnd="16dp">
+        android:paddingEnd="8dp">
+
         <ImageView
             android:id="@+id/emoji_delete_btn"
-            android:layout_width="56dp"
-            android:layout_height="match_parent"
+            android:layout_width="48dp"
+            android:layout_height="32dp"
             android:scaleType="centerInside"
             android:src="@drawable/sym_keyboard_delete"
-            android:padding="8dp"
+            android:padding="6dp"
             android:clickable="true"
             android:focusable="true"
             android:contentDescription="Backspace" />

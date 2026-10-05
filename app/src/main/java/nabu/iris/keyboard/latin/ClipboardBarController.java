@@ -290,18 +290,36 @@ public final class ClipboardBarController {
     View getKeyboardView() { return mKeyboardView; }
     EditText getActiveInput() { return mActiveInput; }
     
+    private boolean isConfigField(EditText et) {
+        if (mAiSettingsHelper == null) return false;
+        return et == mAiSettingsHelper.getSetupGeminiKey()
+                || et == mAiSettingsHelper.getSetupHostUrl()
+                || et == mAiSettingsHelper.getSetupModelName()
+                || et == mAiSettingsHelper.getSetupHeadersJson();
+    }
+
     void setActiveInput(EditText et) {
         if (mActiveInput == et) return;
         EditText prev = mActiveInput;
+        mActiveInput = et;
         if (prev != null) {
             prev.setCursorVisible(false);
-            styleConfigField(prev, false);
+            if (isConfigField(prev)) {
+                styleConfigField(prev, false);
+            }
         }
-        mActiveInput = et;
         if (mActiveInput != null) {
-            styleConfigField(mActiveInput, true);
             mActiveInput.requestFocus();
             mActiveInput.setCursorVisible(true);
+            if (isConfigField(mActiveInput)) {
+                styleConfigField(mActiveInput, true);
+            }
+        }
+        if (mTranslationPanelHelper != null) {
+            mTranslationPanelHelper.updateInputContainerFocus();
+        }
+        if (mAiPanelHelper != null) {
+            mAiPanelHelper.updateInputContainerFocus();
         }
     }
 
@@ -786,6 +804,8 @@ public final class ClipboardBarController {
         if (mAiPanelHelper != null) mAiPanelHelper.applyTheming(accentColor, isDark);
         if (mAiSettingsHelper != null) mAiSettingsHelper.applyTheming(accentColor, isDark, textColor, hintColor);
         if (mTranslationPanelHelper != null) mTranslationPanelHelper.applyTheming(accentColor, isDark, textColor, hintColor);
+        if (mEmojiPanelHelper != null) mEmojiPanelHelper.applyTheming(accentColor, isDark);
+        if (mGifPanelHelper != null) mGifPanelHelper.applyTheming(accentColor, isDark, textColor, hintColor);
         if (mSuggestionHelper != null) mSuggestionHelper.applyTheming(accentColor, isDark);
     }
 
@@ -1017,6 +1037,7 @@ public final class ClipboardBarController {
         et.setFocusableInTouchMode(true);
         et.setShowSoftInputOnFocus(false);
         et.setCursorVisible(true);
+        et.setBackground(null);
         et.setOnClickListener(v -> setActiveInput(et));
         et.setOnFocusChangeListener((v, hasFocus) -> {
             if (hasFocus) {

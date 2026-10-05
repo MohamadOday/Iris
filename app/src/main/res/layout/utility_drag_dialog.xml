@@ -50,7 +50,27 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="14dp"
-            android:text="AI Copilot Toolbar"
+            android:text="AI Copilot"
+            android:textSize="15sp"
+            android:textColor="@color/settings_text_primary"
+            android:layout_marginBottom="6dp" />
+
+        <Switch
+            android:id="@+id/switch_translate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="14dp"
+            android:text="Live Translation"
+            android:textSize="15sp"
+            android:textColor="@color/settings_text_primary"
+            android:layout_marginBottom="6dp" />
+
+        <Switch
+            android:id="@+id/switch_gif"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="14dp"
+            android:text="GIF Search"
             android:textSize="15sp"
             android:textColor="@color/settings_text_primary"
             android:layout_marginBottom="6dp" />

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (C) 2008 The Android Open Source Project
+     Copyright (C) 2026 Iris Keyboard Project
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -16,50 +17,96 @@
 
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     android:key="english_ime_settings">
-    <PreferenceScreen
-        android:fragment="nabu.iris.keyboard.latin.settings.PreferencesSettingsFragment"
-        android:title="@string/settings_screen_preferences"
-        android:key="screen_preferences" />
-    <PreferenceScreen
-        android:fragment="nabu.iris.keyboard.latin.settings.KeyPressSettingsFragment"
-        android:title="@string/settings_screen_key_press"
-        android:key="screen_key_press" />
-    <PreferenceScreen
-        android:fragment="nabu.iris.keyboard.latin.settings.AppearanceSettingsFragment"
-        android:title="@string/settings_screen_appearance"
-        android:key="screen_appearance" />
-    <PreferenceScreen
-        android:fragment="nabu.iris.keyboard.latin.settings.PersonalizationSettingsFragment"
-        android:title="Personalization"
-        android:key="screen_personalization" />
-    <PreferenceScreen
-        android:fragment="nabu.iris.keyboard.latin.settings.AiSettingsFragment"
-        android:title="AI Copilot Studio"
-        android:key="screen_ai" />
-    <PreferenceScreen
-        android:fragment="nabu.iris.keyboard.latin.settings.TranslationSettingsFragment"
-        android:title="Translation Settings"
-        android:key="screen_translation" />
+
+    <PreferenceCategory
+        android:title="General"
+        android:key="category_general">
+        <PreferenceScreen
+            android:fragment="nabu.iris.keyboard.latin.settings.PreferencesSettingsFragment"
+            android:title="@string/settings_screen_preferences"
+            android:summary="Typing behavior, number row, and gesture controls"
+            android:icon="@drawable/ic_settings_preferences"
+            android:key="screen_preferences" />
+        <PreferenceScreen
+            android:fragment="nabu.iris.keyboard.latin.settings.KeyPressSettingsFragment"
+            android:title="@string/settings_screen_key_press"
+            android:summary="Audio feedback, mechanical soundpacks, and haptics"
+            android:icon="@drawable/ic_settings_touch"
+            android:key="screen_key_press" />
+        <Preference
+            android:key="soundpack_store"
+            android:title="Soundpack Store"
+            android:summary="Download and manage custom mechanical soundpacks"
+            android:icon="@drawable/ic_settings_sound" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="Design &amp; Layout"
+        android:key="category_design">
+        <PreferenceScreen
+            android:fragment="nabu.iris.keyboard.latin.settings.AppearanceSettingsFragment"
+            android:title="@string/settings_screen_appearance"
+            android:summary="Themes, Material You dynamic color, and keyboard height"
+            android:icon="@drawable/ic_settings_palette"
+            android:key="screen_appearance" />
+        <PreferenceScreen
+            android:fragment="nabu.iris.keyboard.latin.settings.PersonalizationSettingsFragment"
+            android:title="Personalization"
+            android:summary="Key shapes, sizing, spacing, and background imagery"
+            android:icon="@drawable/ic_settings_brush"
+            android:key="screen_personalization" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="Intelligence &amp; Utilities"
+        android:key="category_intelligence">
+        <PreferenceScreen
+            android:fragment="nabu.iris.keyboard.latin.settings.AiSettingsFragment"
+            android:title="AI Copilot Studio"
+            android:summary="Ollama, Gemini, custom endpoints, and inline assistance"
+            android:icon="@drawable/ic_ai_copilot"
+            android:key="screen_ai" />
+        <PreferenceScreen
+            android:fragment="nabu.iris.keyboard.latin.settings.TranslationSettingsFragment"
+            android:title="Translation Studio"
+            android:summary="Direct in-keyboard translation and offline ML models"
+            android:icon="@drawable/ic_translate"
+            android:key="screen_translation" />
+    </PreferenceCategory>
+
     <PreferenceCategory
         android:title="@string/backup_restore_title"
         android:key="backup_restore_category">
         <Preference
             android:key="export_settings"
             android:title="@string/export_settings_title"
-            android:summary="@string/export_settings_summary" />
+            android:summary="@string/export_settings_summary"
+            android:icon="@drawable/ic_settings_backup" />
         <Preference
             android:key="import_settings"
             android:title="@string/import_settings_title"
-            android:summary="@string/import_settings_summary" />
+            android:summary="@string/import_settings_summary"
+            android:icon="@drawable/ic_settings_backup" />
     </PreferenceCategory>
 
-    <Preference
-        android:title="@string/about_title"
-        android:key="about" />
-    <Preference
-        android:title="@string/privacy_policy"
-        android:key="privacy_policy" />
-    <Preference
-        android:title="@string/license"
-        android:key="license" />
+    <PreferenceCategory
+        android:title="About &amp; Privacy"
+        android:key="category_about">
+        <Preference
+            android:title="@string/about_title"
+            android:summary="Version, project heritage, and developer information"
+            android:icon="@drawable/ic_settings_info"
+            android:key="about" />
+        <Preference
+            android:title="@string/privacy_policy"
+            android:summary="Zero telemetry, 100% on-device privacy guarantee"
+            android:icon="@drawable/ic_settings_security"
+            android:key="privacy_policy" />
+        <Preference
+            android:title="@string/license"
+            android:summary="Open source license details"
+            android:icon="@drawable/ic_settings_policy"
+            android:key="license" />
+    </PreferenceCategory>
+
 </PreferenceScreen>

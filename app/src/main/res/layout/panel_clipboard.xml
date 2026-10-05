@@ -1,15 +1,126 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Dedicated Full Clipboard View Panel -->
+<!-- Dedicated Full Clipboard View Panel - Material You 3 -->
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/clipboard_panel"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:visibility="gone">
-    
+    android:visibility="gone"
+    android:paddingStart="10dp"
+    android:paddingEnd="10dp"
+    android:paddingTop="6dp"
+    android:paddingBottom="6dp">
+
+    <!-- Material You 3 Header Strip -->
+    <LinearLayout
+        android:id="@+id/clipboard_header_row"
+        android:layout_width="match_parent"
+        android:layout_height="36dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="6dp">
+
+        <ImageView
+            android:id="@+id/clipboard_back_btn"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_arrow_back"
+            android:scaleType="centerInside"
+            android:padding="5dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:contentDescription="Back to Keyboard" />
+
+        <TextView
+            android:id="@+id/clipboard_header_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Clipboard"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-medium"
+            android:layout_marginStart="8dp" />
+
+        <TextView
+            android:id="@+id/clipboard_clear_all_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="28dp"
+            android:text="Clear All"
+            android:textSize="11.5sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:clickable="true"
+            android:focusable="true" />
+    </LinearLayout>
+
+    <!-- Search & Filter Row -->
+    <LinearLayout
+        android:id="@+id/clipboard_filter_search_row"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="6dp">
+
+        <!-- Filter Chips Container -->
+        <LinearLayout
+            android:id="@+id/clipboard_tabs_layout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="horizontal"
+            android:gravity="center_vertical" />
+
+        <!-- Search Input Box (Pill Container) -->
+        <LinearLayout
+            android:id="@+id/clipboard_search_box"
+            android:layout_width="140dp"
+            android:layout_height="32dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp">
+
+            <ImageView
+                android:id="@+id/clipboard_search_icon"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/ic_search"
+                android:scaleType="centerInside" />
+
+            <EditText
+                android:id="@+id/clipboard_search_input"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:hint="Search clipboard"
+                android:textSize="11sp"
+                android:singleLine="true"
+                android:background="@null"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:inputType="textNoSuggestions"
+                android:cursorVisible="true" />
+
+            <ImageView
+                android:id="@+id/clipboard_search_clear"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/ic_close"
+                android:scaleType="centerInside"
+                android:visibility="gone"
+                android:clickable="true"
+                android:focusable="true" />
+        </LinearLayout>
+    </LinearLayout>
+
     <!-- Scrollable list of items -->
     <ScrollView
+        android:id="@+id/clipboard_scroll_view"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
@@ -20,6 +131,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="8dp" />
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp" />
     </ScrollView>
 </LinearLayout>

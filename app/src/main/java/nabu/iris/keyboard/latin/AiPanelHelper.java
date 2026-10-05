@@ -16,6 +16,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.inputmethod.InputConnection;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -37,6 +38,8 @@ public final class AiPanelHelper {
     private final ScrollView mAiConsoleScroll;
     private final LinearLayout mAiChatLog;
     
+    private final TextView mAiTitleText;
+    private final LinearLayout mAiInputBar;
     private final TextView mAiActionCopy;
     private final TextView mAiActionInsert;
     private final TextView mAiToolSmartCompose;
@@ -45,6 +48,7 @@ public final class AiPanelHelper {
     private final TextView mAiToolExplain;
     private final TextView mAiToolFix;
     private final EditText mAiPromptInput;
+    private final ImageView mAiPromptClearBtn;
     private final TextView mAiSubmitBtn;
     private final TextView mAiPasteBtn;
     private final TextView mAiClearBtn;
@@ -57,6 +61,8 @@ public final class AiPanelHelper {
         mContext = controller.getContext();
 
         mAiPanel = inputView.findViewById(R.id.ai_panel);
+        mAiTitleText = inputView.findViewById(R.id.ai_title_text);
+        mAiInputBar = inputView.findViewById(R.id.ai_input_bar);
         mAiConsoleScroll = inputView.findViewById(R.id.ai_console_scroll);
         mAiChatLog = inputView.findViewById(R.id.ai_chat_log);
         
@@ -68,6 +74,7 @@ public final class AiPanelHelper {
         mAiToolExplain = inputView.findViewById(R.id.ai_tool_explain);
         mAiToolFix = inputView.findViewById(R.id.ai_tool_fix);
         mAiPromptInput = inputView.findViewById(R.id.ai_prompt_input);
+        mAiPromptClearBtn = inputView.findViewById(R.id.ai_prompt_clear_btn);
         mAiSubmitBtn = inputView.findViewById(R.id.ai_submit_btn);
         mAiPasteBtn = inputView.findViewById(R.id.ai_paste_btn);
         mAiClearBtn = inputView.findViewById(R.id.ai_clear_btn);
@@ -113,6 +120,22 @@ public final class AiPanelHelper {
             });
         }
 
+        if (mAiPromptClearBtn != null && mAiPromptInput != null) {
+            mAiPromptClearBtn.setOnClickListener(v -> mAiPromptInput.setText(""));
+            mAiPromptInput.addTextChangedListener(new android.text.TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+                @Override
+                public void afterTextChanged(android.text.Editable s) {
+                    mAiPromptClearBtn.setVisibility(s != null && s.length() > 0 ? View.VISIBLE : View.GONE);
+                }
+            });
+        }
+
         if (mAiPasteBtn != null && mAiPromptInput != null) {
             mAiPasteBtn.setOnClickListener(v -> {
                 String clipText = mController.getMostRecentClipboardText();
@@ -131,7 +154,7 @@ public final class AiPanelHelper {
                         mAiPromptInput.setSelection(mAiPromptInput.getText().length());
                     }
                 } else {
-                    Toast.makeText(mContext, "Clipboard is empty!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(mContext, "Clipboard is empty", Toast.LENGTH_SHORT).show();
                 }
             });
         }
@@ -213,8 +236,11 @@ public final class AiPanelHelper {
     public void runAiPrompt(String prompt, String displayPrompt) {
         if (mAiChatLog == null) return;
         
+        if (mAiActionCopy != null) mAiActionCopy.setVisibility(View.GONE);
+        if (mAiActionInsert != null) mAiActionInsert.setVisibility(View.GONE);
+
         addMessageBubble("user", displayPrompt);
-        final TextView responseBubble = addMessageBubble("bot", "[🧠 Processing prompt...] Requesting AI Engine output...");
+        final TextView responseBubble = addMessageBubble("bot", "Processing prompt. Requesting AI Engine output.");
         if (mAiSubmitBtn != null) mAiSubmitBtn.setEnabled(false);
 
         AiCopilotManager manager = mController.getAiManager();
@@ -226,6 +252,8 @@ public final class AiPanelHelper {
                 if (responseBubble != null) {
                     responseBubble.setText(responseText);
                 }
+                if (mAiActionCopy != null) mAiActionCopy.setVisibility(View.VISIBLE);
+                if (mAiActionInsert != null) mAiActionInsert.setVisibility(View.VISIBLE);
                 if (mAiSubmitBtn != null) mAiSubmitBtn.setEnabled(true);
             }
 
@@ -309,7 +337,7 @@ public final class AiPanelHelper {
         if ("SmartCompose".equals(action)) {
             finalPrompt = "Rewrite, expand, or execute the following instructions to draft a clean output. Return ONLY the final output:\n\n" + text;
             addMessageBubble("user", "🧠 Smart Compose:\n" + text);
-            final TextView responseBubble = addMessageBubble("bot", "[🧠 Smart Composing...] Writing output...");
+            final TextView responseBubble = addMessageBubble("bot", "Smart Composing. Writing output.");
             AiCopilotManager manager = mController.getAiManager();
             if (manager != null) {
                 manager.queryChat(finalPrompt, new AiCopilotManager.AiCallback() {
@@ -389,13 +417,13 @@ public final class AiPanelHelper {
             userBg.setShape(GradientDrawable.RECTANGLE);
             userBg.setColor(accentColor);
             userBg.setCornerRadii(new float[] {
-                (float) mController.dpToPx(18), (float) mController.dpToPx(18),
-                (float) mController.dpToPx(18), (float) mController.dpToPx(18),
-                0f, 0f,
-                (float) mController.dpToPx(18), (float) mController.dpToPx(18)
+                (float) mController.dpToPx(16), (float) mController.dpToPx(16),
+                (float) mController.dpToPx(16), (float) mController.dpToPx(16),
+                (float) mController.dpToPx(4), (float) mController.dpToPx(4),
+                (float) mController.dpToPx(16), (float) mController.dpToPx(16)
             });
             bubbleText.setBackground(userBg);
-            bubbleText.setTextColor(mController.isColorDark(accentColor) ? Color.WHITE : 0xFF222222);
+            bubbleText.setTextColor(mController.isColorDark(accentColor) ? Color.WHITE : 0xFF1D1B20);
         } else {
             wrapper.setGravity(Gravity.START);
             bubbleParams.gravity = Gravity.START;
@@ -403,15 +431,16 @@ public final class AiPanelHelper {
 
             GradientDrawable botBg = new GradientDrawable();
             botBg.setShape(GradientDrawable.RECTANGLE);
-            botBg.setColor(isDark ? 0x14FFFFFF : 0x0C000000);
+            botBg.setColor(isDark ? 0x22FFFFFF : 0x0E000000);
+            botBg.setStroke(mController.dpToPx(1), isDark ? 0x2EFFFFFF : 0x18000000);
             botBg.setCornerRadii(new float[] {
-                (float) mController.dpToPx(18), (float) mController.dpToPx(18),
-                (float) mController.dpToPx(18), (float) mController.dpToPx(18),
-                (float) mController.dpToPx(18), (float) mController.dpToPx(18),
-                0f, 0f
+                (float) mController.dpToPx(16), (float) mController.dpToPx(16),
+                (float) mController.dpToPx(16), (float) mController.dpToPx(16),
+                (float) mController.dpToPx(16), (float) mController.dpToPx(16),
+                (float) mController.dpToPx(4), (float) mController.dpToPx(4)
             });
             bubbleText.setBackground(botBg);
-            bubbleText.setTextColor(isDark ? 0xFFEEEEEE : 0xFF222222);
+            bubbleText.setTextColor(isDark ? 0xFFEEEEEE : 0xFF1D1B20);
         }
 
         bubbleText.setLayoutParams(bubbleParams);
@@ -426,9 +455,12 @@ public final class AiPanelHelper {
     }
 
     public void clearChat() {
+        if (mAiActionCopy != null) mAiActionCopy.setVisibility(View.GONE);
+        if (mAiActionInsert != null) mAiActionInsert.setVisibility(View.GONE);
+        mLatestResponseText = "";
         if (mAiChatLog != null) {
             mAiChatLog.removeAllViews();
-            addMessageBubble("bot", "System Ready. Tap an AI Assist action or type a prompt...");
+            addMessageBubble("bot", "System Ready. Tap an AI Assist action or enter a prompt.");
         }
         AiCopilotManager manager = mController.getAiManager();
         if (manager != null) {
@@ -504,7 +536,7 @@ public final class AiPanelHelper {
         final boolean finalIsSelection = isSelection;
         final int finalReplaceLength = replaceLength;
 
-        Toast.makeText(mContext, "Correcting grammar...", Toast.LENGTH_SHORT).show();
+        Toast.makeText(mContext, "Correcting grammar", Toast.LENGTH_SHORT).show();
 
         String prompt = "You are a native American English speaker. Correct the grammar, spelling, punctuation, and phrasing in the following text. "
                       + "Do NOT make it sound like an AI, robotic, or overly artificial. Keep the phrasing extremely natural, casual, and authentic, exactly like how an American would type it. "
@@ -549,23 +581,51 @@ public final class AiPanelHelper {
     }
 
     public void applyTheming(int accentColor, boolean isDark) {
+        if (mAiPanel != null) {
+            mAiPanel.setBackgroundColor(mController.getKeyboardBackgroundColor());
+        }
+
+        if (mAiTitleText != null) {
+            mAiTitleText.setTextColor(isDark ? 0xFFEEEEEE : 0xFF1D1B20);
+        }
+
         if (mAiConsoleScroll != null) {
             GradientDrawable consoleBg = new GradientDrawable();
             consoleBg.setShape(GradientDrawable.RECTANGLE);
-            consoleBg.setCornerRadius(mController.dpToPx(10));
-            consoleBg.setColor(isDark ? 0xFF0A0A0A : 0xFFF5F5F5);
-            consoleBg.setStroke(mController.dpToPx(1.5f), accentColor);
+            consoleBg.setCornerRadius(mController.dpToPx(16));
+            consoleBg.setColor(isDark ? 0x14FFFFFF : 0x08000000);
+            consoleBg.setStroke(mController.dpToPx(1), isDark ? 0x22FFFFFF : 0x14000000);
             mAiConsoleScroll.setBackground(consoleBg);
         }
 
         if (mAiActionCopy != null) {
-            mAiActionCopy.setTextColor(isDark ? 0xCCFFFFFF : 0xAA000000);
-            mAiActionCopy.setBackground(null);
+            GradientDrawable cpBg = new GradientDrawable();
+            cpBg.setShape(GradientDrawable.RECTANGLE);
+            cpBg.setCornerRadius(mController.dpToPx(13));
+            cpBg.setColor(isDark ? 0x18FFFFFF : 0x0E000000);
+            cpBg.setStroke(mController.dpToPx(1), isDark ? 0x24FFFFFF : 0x1A000000);
+            mAiActionCopy.setBackground(cpBg);
+            mAiActionCopy.setTextColor(isDark ? 0xFFDDDDDD : 0xFF333333);
         }
 
         if (mAiActionInsert != null) {
+            GradientDrawable insBg = new GradientDrawable();
+            insBg.setShape(GradientDrawable.RECTANGLE);
+            insBg.setCornerRadius(mController.dpToPx(13));
+            insBg.setColor(mController.getTranslucentColor(accentColor, 18));
+            insBg.setStroke(mController.dpToPx(1), mController.getTranslucentColor(accentColor, 40));
+            mAiActionInsert.setBackground(insBg);
             mAiActionInsert.setTextColor(accentColor);
-            mAiActionInsert.setBackground(null);
+        }
+
+        if (mAiClearBtn != null) {
+            GradientDrawable clrBg = new GradientDrawable();
+            clrBg.setShape(GradientDrawable.RECTANGLE);
+            clrBg.setCornerRadius(mController.dpToPx(13));
+            clrBg.setColor(isDark ? 0x18FFFFFF : 0x0E000000);
+            clrBg.setStroke(mController.dpToPx(1), isDark ? 0x28FFFFFF : 0x1A000000);
+            mAiClearBtn.setBackground(clrBg);
+            mAiClearBtn.setTextColor(isDark ? 0xCCFFFFFF : 0x88000000);
         }
 
         mController.styleToolChip(mAiToolSmartCompose, accentColor, isDark);
@@ -574,32 +634,60 @@ public final class AiPanelHelper {
         mController.styleToolChip(mAiToolExplain, accentColor, isDark);
         mController.styleToolChip(mAiToolFix, accentColor, isDark);
 
+        updateInputContainerFocus();
+
         if (mAiPromptInput != null) {
-            mController.styleConfigField(mAiPromptInput, mController.getActiveInput() == mAiPromptInput);
+            mAiPromptInput.setBackground(null);
+            mAiPromptInput.setTextColor(isDark ? 0xFFEEEEEE : 0xFF1D1B20);
+            mAiPromptInput.setHintTextColor(isDark ? 0x66FFFFFF : 0x66000000);
         }
 
-        if (mAiSubmitBtn != null) {
-            GradientDrawable sbBg = new GradientDrawable();
-            sbBg.setShape(GradientDrawable.RECTANGLE);
-            sbBg.setCornerRadius(mController.dpToPx(16));
-            sbBg.setColor(accentColor);
-            mAiSubmitBtn.setBackground(sbBg);
-            mAiSubmitBtn.setTextColor(Color.WHITE);
+        if (mAiPromptClearBtn != null) {
+            mAiPromptClearBtn.setColorFilter(isDark ? 0xAAFFFFFF : 0x88000000);
+            GradientDrawable clrBg = new GradientDrawable();
+            clrBg.setShape(GradientDrawable.RECTANGLE);
+            clrBg.setCornerRadius(mController.dpToPx(14));
+            clrBg.setColor(isDark ? 0x18FFFFFF : 0x0E000000);
+            mAiPromptClearBtn.setBackground(clrBg);
         }
 
         if (mAiPasteBtn != null) {
             GradientDrawable pbBg = new GradientDrawable();
             pbBg.setShape(GradientDrawable.RECTANGLE);
-            pbBg.setCornerRadius(mController.dpToPx(16));
-            pbBg.setColor(isDark ? 0x22FFFFFF : 0x1A000000);
-            pbBg.setStroke(mController.dpToPx(1), accentColor);
+            pbBg.setCornerRadius(mController.dpToPx(14));
+            pbBg.setColor(isDark ? 0x1AFFFFFF : 0x0E000000);
+            pbBg.setStroke(mController.dpToPx(1), isDark ? 0x24FFFFFF : 0x1A000000);
             mAiPasteBtn.setBackground(pbBg);
-            mAiPasteBtn.setTextColor(accentColor);
+            mAiPasteBtn.setTextColor(isDark ? 0xFFCCCCCC : 0xFF444444);
         }
 
-        if (mAiClearBtn != null) {
-            mAiClearBtn.setTextColor(0xFFFF5252);
-            mAiClearBtn.setBackground(null);
+        if (mAiSubmitBtn != null) {
+            GradientDrawable sbBg = new GradientDrawable();
+            sbBg.setShape(GradientDrawable.RECTANGLE);
+            sbBg.setCornerRadius(mController.dpToPx(14));
+            sbBg.setColor(mController.getTranslucentColor(accentColor, 30));
+            sbBg.setStroke(mController.dpToPx(1), mController.getTranslucentColor(accentColor, 65));
+            mAiSubmitBtn.setBackground(sbBg);
+            mAiSubmitBtn.setTextColor(accentColor);
         }
+    }
+
+    public void updateInputContainerFocus() {
+        if (mAiInputBar == null) return;
+        SharedPreferences prefs = PreferenceManagerCompat.getDeviceSharedPreferences(mContext);
+        int customColor = Settings.readKeyboardColor(prefs, mContext);
+        int backgroundColor = mController.getKeyboardBackgroundColor();
+        boolean isDark = mController.isColorDark(backgroundColor);
+        int accentColor = customColor;
+        if (accentColor == 0 || mController.isColorMonochromeOrTooDark(accentColor)) {
+            accentColor = mContext.getResources().getColor(R.color.settings_accent);
+        }
+        boolean isFocused = (mController.getActiveInput() == mAiPromptInput);
+        GradientDrawable barBg = new GradientDrawable();
+        barBg.setShape(GradientDrawable.RECTANGLE);
+        barBg.setCornerRadius(mController.dpToPx(20));
+        barBg.setColor(isDark ? 0x14FFFFFF : 0x0A000000);
+        barBg.setStroke(mController.dpToPx(1.5f), isFocused ? accentColor : (isDark ? 0x22FFFFFF : 0x1A000000));
+        mAiInputBar.setBackground(barBg);
     }
 }

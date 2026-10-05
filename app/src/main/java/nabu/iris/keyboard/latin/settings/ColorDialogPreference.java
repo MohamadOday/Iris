@@ -59,14 +59,13 @@ public final class ColorDialogPreference extends DialogPreference
     private ValueProxy mValueProxy;
 
     private static final int[] PRESET_COLORS = new int[] {
-            0xFF7C4DFF, // Electric Purple
-            0xFF0284C7, // Ocean Blue
-            0xFF10B981, // Emerald Green
-            0xFFF59E0B, // Amber
-            0xFFEC4899, // Hot Pink
-            0xFFEF4444, // Crimson Red
+            0xFF8A4AF3, // Iris Purple
+            0xFF1976D2, // Lapis Mesopotamia
+            0xFF00897B, // Emerald Green
+            0xFFF57C00, // Ishtar Amber
+            0xFFD81B60, // Rose
             0xFF18181B, // AMOLED Deep Black
-            0xFF3F3F46, // Graphite
+            0xFF71717A, // Zinc Neutral
             0xFFF4F4F5  // Clean Frost
     };
 

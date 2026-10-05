@@ -93,6 +93,7 @@ public final class PersonalizationSettingsFragment extends SubScreenFragment {
         if (pref == null) return;
 
         pref.setSummary(pref.getEntry());
+        updateKeySizeControls(pref.getValue());
         pref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
@@ -101,9 +102,20 @@ public final class PersonalizationSettingsFragment extends SubScreenFragment {
                     preference.setSummary(pref.getEntries()[index]);
                 }
                 pref.setValue((String) newValue);
+                updateKeySizeControls((String) newValue);
                 return true;
             }
         });
+    }
+
+    private void updateKeySizeControls(String mode) {
+        boolean isUniform = !"separate".equals(mode);
+        Preference sizePref = findPreference(PREF_KEY_SIZE_SCALE);
+        Preference widthPref = findPreference(PREF_KEY_WIDTH_SCALE);
+        Preference heightPref = findPreference(PREF_KEY_HEIGHT_SCALE);
+        if (sizePref != null) sizePref.setEnabled(isUniform);
+        if (widthPref != null) widthPref.setEnabled(!isUniform);
+        if (heightPref != null) heightPref.setEnabled(!isUniform);
     }
 
     private void setupKeySizeScalePreference() {
